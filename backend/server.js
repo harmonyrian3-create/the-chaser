@@ -7,28 +7,49 @@ const { Resend } = require('resend');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Tesseract = require('tesseract.js');
 const cron = require('node-cron');
-const path = require('path'); // <-- Added to handle file paths
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔥 NEW: Serve your frontend files (index.html, upload.html)
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
+// --- 1. SERVE FRONTEND FILES ---
+const frontendPath = path.join(__dirname, '..', 'frontend');
+console.log('📁 Serving frontend from:', frontendPath);
 
-// --- 1. CONNECT TO NEON DATABASE ---
+// Serve static files (CSS, images, etc.)
+app.use(express.static(frontendPath));
+
+// Explicit routes for HTML pages
+app.get('/', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
+app.get('/register.html', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'register.html'));
+});
+
+app.get('/dashboard.html', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'dashboard.html'));
+});
+
+app.get('/upload.html', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'upload.html'));
+});
+
+// --- 2. CONNECT TO NEON DATABASE ---
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// --- 2. INITIALIZE APIs ---
+// --- 3. INITIALIZE APIs ---
 const resend = new Resend(process.env.RESEND_API_KEY);
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 const upload = multer({ storage: multer.memoryStorage() });
 
-// --- 3. CREATE DATABASE TABLES ---
+// --- 4. CREATE DATABASE TABLES ---
 const initDB = async () => {
   try {
     await pool.query(`
@@ -68,12 +89,12 @@ const initDB = async () => {
 };
 initDB();
 
-// --- 4. API ENDPOINTS ---
+// --- 5. API ENDPOINTS ---
 
 // Test endpoint
 app.get('/api/status', (req, res) => res.send('🚀 The Chaser API is alive!'));
 
-// 🔥 NEW: Add an accounting firm (This is your customer)
+// Add an accounting firm
 app.post('/api/firms', async (req, res) => {
   try {
     const { email, name } = req.body;
@@ -87,7 +108,24 @@ app.post('/api/firms', async (req, res) => {
   }
 });
 
-// Add a new client (Your aunt/firm uses this)
+// Get all clients for a firm
+app.get('/api/clients', async (req, res) => {
+  try {
+    const { firm_id } = req.query;
+    if (!firm_id) {
+      return res.status(400).json({ error: 'firm_id is required' });
+    }
+    const result = await pool.query(
+      `SELECT * FROM clients WHERE firm_id = $1 ORDER BY created_at DESC`,
+      [firm_id]
+    );
+    res.json({ success: true, clients: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add a new client
 app.post('/api/clients', async (req, res) => {
   try {
     const { firm_id, name, email, phone } = req.body;
@@ -102,7 +140,7 @@ app.post('/api/clients', async (req, res) => {
   }
 });
 
-// Upload receipt (Client uploads from the link in the email)
+// Upload receipt
 app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
   try {
     const { client_id } = req.body;
@@ -132,7 +170,7 @@ app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
   }
 });
 
-// Send a reminder email (Manually or via Cron)
+// Send a reminder email
 app.post('/api/send-reminder', async (req, res) => {
   try {
     const { client_id } = req.body;
@@ -143,10 +181,8 @@ app.post('/api/send-reminder', async (req, res) => {
     const client = result.rows[0];
     if (!client) throw new Error('Client not found');
 
-    // ✅ NOW this points to the correct local URL!
     const uploadLink = `${process.env.BASE_URL}/upload.html?client=${client.id}`;
 
-    // Send professional email via Resend
     await resend.emails.send({
       from: 'The Chaser <onboarding@resend.dev>',
       to: [client.email],
@@ -173,7 +209,7 @@ app.post('/api/send-reminder', async (req, res) => {
   }
 });
 
-// --- 5. CRON JOB (Runs daily at 9 AM to auto-nag) ---
+// --- 6. CRON JOB (Runs daily at 9 AM) ---
 cron.schedule('0 9 * * *', async () => {
   console.log('⏰ Running daily nagging cron job...');
   try {
@@ -193,5 +229,8 @@ cron.schedule('0 9 * * *', async () => {
   } catch (err) { console.error('Cron failed:', err); }
 });
 
-// --- 6. START THE SERVER ---
-app.listen(process.env.PORT, () => console.log(`🚀 The Chaser running on port ${process.env.PORT}`));
+// --- 7. START THE SERVER ---
+app.listen(process.env.PORT, () => {
+  console.log(`🚀 The Chaser running on port ${process.env.PORT}`);
+  console.log(`📁 Frontend path: ${frontendPath}`);
+});
