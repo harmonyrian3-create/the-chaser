@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in – The Chaser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.4); }
+    .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
+    .btn-grad:hover { transform: scale(1.02); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.4); }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
+
+  <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full">
+    <div class="text-center">
+      <span class="text-4xl">📧</span>
+      <h2 class="text-3xl font-bold text-gray-800 mt-2">Welcome back</h2>
+      <p class="text-gray-500 text-sm mt-1">Log in to your dashboard</p>
+    </div>
+
+    <form id="loginForm" class="mt-8 space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Email</label>
+        <input id="loginEmail" type="email" placeholder="info@smith.com" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Password</label>
+        <input id="loginPassword" type="password" placeholder="••••••••" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required>
+      </div>
+      <button type="submit" class="w-full btn-grad text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/30">Log In</button>
+      <div id="loginResult" class="text-sm text-center mt-2"></div>
+    </form>
+
+    <p class="text-center text-sm text-gray-500 mt-6">Don't have an account? <a href="/register.html" class="text-blue-600 font-semibold hover:underline">Sign up free</a></p>
+  </div>
+
+  <script>
+    const API_URL = window.location.origin;
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      if (!email || !password) {
+        document.getElementById('loginResult').innerHTML = '<p class="text-red-500">Please fill in all fields.</p>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('chaser_firm_id', data.firm.id);
+          localStorage.setItem('chaser_firm_name', data.firm.name);
+          window.location.href = '/dashboard.html';
+        } else {
+          document.getElementById('loginResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
+        }
+      } catch (err) {
+        document.getElementById('loginResult').innerHTML = '<p class="text-red-500">❌ Server error. Try again.</p>';
+      }
+    });
+  </script>
+
+</body>
+</html>
