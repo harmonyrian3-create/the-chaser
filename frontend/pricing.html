@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pricing – The Chaser</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     * { font-family: 'Inter', sans-serif; }
     .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
@@ -25,13 +25,13 @@
     <div class="text-2xl font-extrabold text-blue-600 mb-8">📧 The Chaser</div>
     <nav class="flex-1 space-y-1.5">
       <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
-      <a href="/dashboard.html" id="navDashboard" class="nav-link hidden flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
+      <a href="/dashboard.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
       <a href="/pricing.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i> Pricing</a>
-      <a href="/login.html" id="navLogin" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-sign-in-alt w-5 text-blue-500"></i> Login</a>
-      <a href="/register.html" id="navRegister" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-user-plus w-5 text-blue-500"></i> Register</a>
-      <button onclick="logoutUser()" id="navLogout" class="nav-link hidden w-full text-left flex items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
+      <a href="/receipts.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i> Receipts</a>
+      <a href="/settings.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-blue-500"></i> Settings</a>
+      <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
     </nav>
-    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">v1.0</div>
+    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
   </aside>
 
   <!-- MAIN -->
@@ -93,17 +93,9 @@
 
   <script>
     const firmId = localStorage.getItem('chaser_firm_id');
-    const navDashboard = document.getElementById('navDashboard');
-    const navLogout = document.getElementById('navLogout');
-    const navLogin = document.getElementById('navLogin');
-    const navRegister = document.getElementById('navRegister');
-
-    if (firmId) {
-      navDashboard.classList.remove('hidden');
-      navLogout.classList.remove('hidden');
-      navLogin.classList.add('hidden');
-      navRegister.classList.add('hidden');
-    }
+    const firmName = localStorage.getItem('chaser_firm_name');
+    if (!firmId) window.location.href = '/login.html';
+    document.getElementById('firmDisplay').innerText = firmName || 'My Firm';
 
     function logoutUser() {
       localStorage.removeItem('chaser_firm_id');

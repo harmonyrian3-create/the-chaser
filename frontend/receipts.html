@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Receipts – The Chaser</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     * { font-family: 'Inter', sans-serif; }
     .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
@@ -24,8 +24,9 @@
     <nav class="flex-1 space-y-1.5">
       <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
       <a href="/dashboard.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
-      <a href="/receipts.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i> Receipts</a>
       <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i> Pricing</a>
+      <a href="/receipts.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i> Receipts</a>
+      <a href="/settings.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-blue-500"></i> Settings</a>
       <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
     </nav>
     <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
@@ -36,8 +37,8 @@
     <div class="max-w-6xl mx-auto">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-extrabold text-gray-800">📄 Receipts</h1>
-        <div class="flex gap-2">
-          <input id="searchInput" placeholder="Search receipts..." class="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
+        <div class="flex gap-2 flex-wrap">
+          <input id="searchInput" placeholder="Search receipts..." class="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition" />
           <select id="filterCategory" class="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
             <option value="">All Categories</option>
             <option value="Meals">Meals</option>
@@ -103,7 +104,7 @@
           <div class="receipt-card bg-white rounded-2xl shadow-md p-6 border border-gray-100">
             <div class="flex justify-between items-start">
               <div class="flex-1">
-                <p class="text-sm text-gray-400">${new Date(r.upload_date).toLocaleDateString()}</p>
+                <p class="text-sm text-gray-400">${new Date(r.upload_date).toLocaleDateString()} · Client: ${r.client_name || 'Unknown'}</p>
                 <p class="text-gray-700 mt-1 text-sm">${r.extracted_text || 'No text extracted'}</p>
               </div>
               <span class="text-sm ${categoryColors[r.category] || 'bg-gray-100 text-gray-800'} px-4 py-1 rounded-full">${r.category || 'Uncategorized'}</span>
