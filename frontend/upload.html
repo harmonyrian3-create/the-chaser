@@ -1,31 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Upload Receipts</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Receipt – The Chaser</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
+    .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.4); }
+    .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
+    .btn-grad:hover { transform: scale(1.02); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.4); }
+    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: #2563eb; }
+  </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-  <div class="bg-white p-8 rounded-lg shadow-lg w-96">
-    <h1 class="text-2xl font-bold mb-2 text-green-600">📸 Upload Receipt</h1>
-    <p class="text-gray-600 text-sm">Drag a photo or click to browse.</p>
-    <input type="file" id="fileInput" accept="image/*" class="mt-4 border p-2 w-full">
-    <input type="text" id="clientId" placeholder="Your Client ID" class="mt-2 border p-2 w-full">
-    <button onclick="uploadReceipt()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700">
-      Upload Receipt
-    </button>
-    <div id="result" class="mt-4 text-sm"></div>
-  </div>
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 flex min-h-screen">
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-6 flex flex-col">
+    <div class="text-2xl font-extrabold text-blue-600 mb-8">📧 The Chaser</div>
+    <nav class="flex-1 space-y-1.5">
+      <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
+      <a href="/dashboard.html" id="navDashboard" class="nav-link hidden flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
+      <a href="/login.html" id="navLogin" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-sign-in-alt w-5 text-blue-500"></i> Login</a>
+      <a href="/register.html" id="navRegister" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-user-plus w-5 text-blue-500"></i> Register</a>
+      <button onclick="logoutUser()" id="navLogout" class="nav-link hidden w-full text-left flex items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
+    </nav>
+    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">Secure Upload</div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="flex-1 ml-64 flex items-center justify-center p-6">
+    <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center">
+      <span class="text-5xl block mb-4">📸</span>
+      <h2 class="text-2xl font-bold text-gray-800">Upload Receipt</h2>
+      <p class="text-gray-500 text-sm mt-1">Your accountant needs this receipt.</p>
+
+      <div class="mt-6 space-y-4">
+        <input type="file" id="fileInput" accept="image/*" class="w-full border border-gray-200 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        <input id="clientId" type="text" placeholder="Your Client ID" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
+        <button onclick="uploadReceipt()" class="w-full btn-grad text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/30">Upload Now</button>
+        <div id="result" class="text-sm mt-2"></div>
+      </div>
+    </div>
+  </main>
 
   <script>
-    const API_URL = 'http://localhost:5000';
+    const API_URL = window.location.origin;
+
+    // Sidebar logic
+    const firmId = localStorage.getItem('chaser_firm_id');
+    const navDashboard = document.getElementById('navDashboard');
+    const navLogout = document.getElementById('navLogout');
+    const navLogin = document.getElementById('navLogin');
+    const navRegister = document.getElementById('navRegister');
+
+    if (firmId) {
+      navDashboard.classList.remove('hidden');
+      navLogout.classList.remove('hidden');
+      navLogin.classList.add('hidden');
+      navRegister.classList.add('hidden');
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('chaser_firm_id');
+      localStorage.removeItem('chaser_firm_name');
+      window.location.href = '/';
+    }
 
     async function uploadReceipt() {
       const fileInput = document.getElementById('fileInput');
-      const clientId = document.getElementById('clientId').value;
+      const clientId = document.getElementById('clientId').value.trim();
       const file = fileInput.files[0];
 
       if (!file || !clientId) {
-        alert('Select a file and enter your Client ID');
+        document.getElementById('result').innerHTML = '<p class="text-red-500">Select a file and enter your Client ID.</p>';
         return;
       }
 
@@ -40,12 +91,14 @@
         });
         const data = await res.json();
         if (data.success) {
-          document.getElementById('result').innerHTML = `<p class="text-green-600">✅ Uploaded! Categorized as: <b>${data.category}</b></p>`;
+          document.getElementById('result').innerHTML = `<p class="text-green-600">✅ Uploaded! Category: <b>${data.category}</b></p>`;
+          document.getElementById('fileInput').value = '';
+          document.getElementById('clientId').value = '';
         } else {
-          document.getElementById('result').innerHTML = `<p class="text-red-600">❌ Error: ${data.error}</p>`;
+          document.getElementById('result').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
         }
       } catch (err) {
-        alert('Cannot connect to server.');
+        document.getElementById('result').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
       }
     }
   </script>

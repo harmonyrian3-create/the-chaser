@@ -6,68 +6,77 @@
   <title>Dashboard – The Chaser</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     * { font-family: 'Inter', sans-serif; }
+    .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
     .glass-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3); }
     .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
-    .btn-grad:hover { transform: scale(1.02); box-shadow: 0 10px 30px -5px rgba(59,130,246,0.4); }
+    .btn-grad:hover { transform: scale(1.02); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.4); }
     .stat-card { transition: all 0.3s; }
     .stat-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: #2563eb; }
+    .nav-link.active { background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600; }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 flex min-h-screen">
 
-  <!-- Navbar -->
-  <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
-      <span class="text-2xl font-extrabold text-blue-600">📧 The Chaser</span>
-      <div class="flex items-center gap-4">
-        <span id="firmDisplay" class="text-sm font-medium text-gray-700 bg-gray-100 px-4 py-2 rounded-full"></span>
-        <button onclick="logout()" class="text-gray-500 hover:text-red-500 transition"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-6 flex flex-col">
+    <div class="text-2xl font-extrabold text-blue-600 mb-8">📧 The Chaser</div>
+    <nav class="flex-1 space-y-1.5">
+      <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
+      <a href="/dashboard.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
+      <a href="/login.html" id="navLogin" class="nav-link hidden flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-sign-in-alt w-5 text-blue-500"></i> Login</a>
+      <a href="/register.html" id="navRegister" class="nav-link hidden flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-user-plus w-5 text-blue-500"></i> Register</a>
+      <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
+    </nav>
+    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="flex-1 ml-64 p-8">
+    <div class="max-w-6xl mx-auto">
+
+      <!-- Stats -->
+      <div class="grid md:grid-cols-3 gap-6 mb-10">
+        <div class="stat-card bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 border border-gray-100">
+          <div class="bg-blue-100 p-4 rounded-xl"><i class="fas fa-users text-blue-600 text-2xl"></i></div>
+          <div><p class="text-sm text-gray-500">Total Clients</p><p id="totalClients" class="text-3xl font-bold">0</p></div>
+        </div>
+        <div class="stat-card bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 border border-gray-100">
+          <div class="bg-yellow-100 p-4 rounded-xl"><i class="fas fa-clock text-yellow-600 text-2xl"></i></div>
+          <div><p class="text-sm text-gray-500">Awaiting Receipts</p><p id="awaitingClients" class="text-3xl font-bold text-yellow-600">0</p></div>
+        </div>
+        <div class="stat-card bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 border border-gray-100">
+          <div class="bg-green-100 p-4 rounded-xl"><i class="fas fa-check-circle text-green-600 text-2xl"></i></div>
+          <div><p class="text-sm text-gray-500">Uploaded</p><p id="uploadedClients" class="text-3xl font-bold text-green-600">0</p></div>
+        </div>
       </div>
+
+      <!-- Add Client -->
+      <div class="glass-card rounded-2xl shadow-lg p-6 mb-10">
+        <h3 class="text-xl font-bold text-gray-800">➕ Add Client</h3>
+        <div class="grid md:grid-cols-3 gap-4 mt-4">
+          <input id="clientName" placeholder="Full Name" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
+          <input id="clientEmail" placeholder="Email" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
+          <input id="clientPhone" placeholder="Phone (optional)" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
+        </div>
+        <button onclick="addClient()" class="mt-4 btn-grad text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30">Add Client</button>
+        <div id="clientResult" class="mt-3 text-sm"></div>
+      </div>
+
+      <!-- Client List -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">📋 Your Clients</h3>
+        <div id="clientList" class="space-y-3">
+          <p class="text-gray-400 text-sm">No clients yet. Add your first one above.</p>
+        </div>
+      </div>
+
     </div>
-  </nav>
+  </main>
 
-  <div class="max-w-7xl mx-auto px-6 py-10">
-
-    <!-- Stats -->
-    <div class="grid md:grid-cols-3 gap-6 mb-10">
-      <div class="stat-card bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 border border-gray-100">
-        <div class="bg-blue-100 p-4 rounded-xl"><i class="fas fa-users text-blue-600 text-2xl"></i></div>
-        <div><p class="text-sm text-gray-500">Total Clients</p><p id="totalClients" class="text-3xl font-bold">0</p></div>
-      </div>
-      <div class="stat-card bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 border border-gray-100">
-        <div class="bg-yellow-100 p-4 rounded-xl"><i class="fas fa-clock text-yellow-600 text-2xl"></i></div>
-        <div><p class="text-sm text-gray-500">Awaiting Receipts</p><p id="awaitingClients" class="text-3xl font-bold text-yellow-600">0</p></div>
-      </div>
-      <div class="stat-card bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 border border-gray-100">
-        <div class="bg-green-100 p-4 rounded-xl"><i class="fas fa-check-circle text-green-600 text-2xl"></i></div>
-        <div><p class="text-sm text-gray-500">Uploaded</p><p id="uploadedClients" class="text-3xl font-bold text-green-600">0</p></div>
-      </div>
-    </div>
-
-    <!-- Add Client -->
-    <div class="glass-card rounded-2xl shadow-lg p-6 mb-10">
-      <h3 class="text-xl font-bold text-gray-800">➕ Add Client</h3>
-      <div class="grid md:grid-cols-3 gap-4 mt-4">
-        <input id="clientName" placeholder="Full Name" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
-        <input id="clientEmail" placeholder="Email" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
-        <input id="clientPhone" placeholder="Phone (optional)" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
-      </div>
-      <button onclick="addClient()" class="mt-4 btn-grad text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30">Add Client</button>
-      <div id="clientResult" class="mt-3 text-sm"></div>
-    </div>
-
-    <!-- Client List -->
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-      <h3 class="text-xl font-bold text-gray-800 mb-4">📋 Your Clients</h3>
-      <div id="clientList" class="space-y-3">
-        <p class="text-gray-400 text-sm">No clients yet. Add your first one above.</p>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
   <script>
     const API_URL = window.location.origin;
     const firmId = localStorage.getItem('chaser_firm_id');
@@ -77,41 +86,49 @@
       window.location.href = '/login.html';
     }
 
-    document.getElementById('firmDisplay').innerText = '🏢 ' + (firmName || 'My Firm');
+    document.getElementById('firmDisplay').innerText = firmName || 'My Firm';
+
+    // Show/hide sidebar links based on login
+    const navLogin = document.getElementById('navLogin');
+    const navRegister = document.getElementById('navRegister');
+    if (firmId) {
+      navLogin.classList.add('hidden');
+      navRegister.classList.add('hidden');
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('chaser_firm_id');
+      localStorage.removeItem('chaser_firm_name');
+      window.location.href = '/';
+    }
 
     async function loadClients() {
       try {
         const res = await fetch(`${API_URL}/api/clients?firm_id=${firmId}`);
         const data = await res.json();
-        if (data.success) {
-          renderClients(data.clients);
-        }
+        if (data.success) renderClients(data.clients);
       } catch (err) { console.error(err); }
     }
 
     function renderClients(clients) {
       const container = document.getElementById('clientList');
       if (!clients || clients.length === 0) {
-        container.innerHTML = '<p class="text-gray-400 text-sm">No clients yet. Add your first one above.</p>';
+        container.innerHTML = '<p class="text-gray-400 text-sm">No clients yet.</p>';
         return;
       }
 
       let html = '';
       let awaiting = 0, uploaded = 0;
-
       clients.forEach(c => {
         if (c.status === 'awaiting') awaiting++;
         if (c.status === 'uploaded') uploaded++;
         const statusClass = c.status === 'awaiting' ? 'text-yellow-600 bg-yellow-50' : 'text-green-600 bg-green-50';
         const icon = c.status === 'awaiting' ? '🕐' : '✅';
-        html += `
-          <div class="flex items-center justify-between border-b border-gray-100 py-3">
-            <div><p class="font-medium">${c.name}</p><p class="text-sm text-gray-400">${c.email}</p></div>
-            <span class="text-sm ${statusClass} px-4 py-1 rounded-full">${icon} ${c.status}</span>
-          </div>
-        `;
+        html += `<div class="flex items-center justify-between border-b border-gray-100 py-3">
+          <div><p class="font-medium">${c.name}</p><p class="text-sm text-gray-400">${c.email}</p></div>
+          <span class="text-sm ${statusClass} px-4 py-1 rounded-full">${icon} ${c.status}</span>
+        </div>`;
       });
-
       container.innerHTML = html;
       document.getElementById('totalClients').innerText = clients.length;
       document.getElementById('awaitingClients').innerText = awaiting;
@@ -147,12 +164,6 @@
       } catch (err) {
         document.getElementById('clientResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
       }
-    }
-
-    function logout() {
-      localStorage.removeItem('chaser_firm_id');
-      localStorage.removeItem('chaser_firm_name');
-      window.location.href = '/';
     }
 
     loadClients();
