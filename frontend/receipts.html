@@ -14,26 +14,37 @@
     .nav-link.active { background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600; }
     .receipt-card { transition: all 0.3s; }
     .receipt-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+    .sidebar-collapsed { width: 72px !important; }
+    .sidebar-collapsed .nav-text { display: none; }
+    .sidebar-collapsed .brand-text { display: none; }
+    .sidebar-collapsed .nav-link { justify-content: center; padding: 12px; }
+    .sidebar-collapsed .nav-link i { font-size: 1.25rem; }
+    .sidebar-collapsed .footer-text { display: none; }
   </style>
 </head>
 <body class="bg-gray-50 flex min-h-screen">
 
   <!-- SIDEBAR -->
-  <aside class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-6 flex flex-col">
-    <div class="text-2xl font-extrabold text-blue-600 mb-8">📧 The Chaser</div>
+  <aside id="sidebar" class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-4 flex flex-col transition-all duration-300">
+    <div class="flex items-center justify-between mb-6">
+      <span class="brand-text text-2xl font-extrabold text-blue-600">📧 The Chaser</span>
+      <button onclick="toggleSidebar()" class="text-gray-500 hover:text-blue-600 transition">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
     <nav class="flex-1 space-y-1.5">
-      <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
-      <a href="/dashboard.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
-      <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i> Pricing</a>
-      <a href="/receipts.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i> Receipts</a>
-      <a href="/settings.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-blue-500"></i> Settings</a>
-      <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
+      <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i><span class="nav-text">Home</span></a>
+      <a href="/dashboard.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i><span class="nav-text">Dashboard</span></a>
+      <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i><span class="nav-text">Pricing</span></a>
+      <a href="/receipts.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i><span class="nav-text">Receipts</span></a>
+      <a href="/settings.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-blue-500"></i><span class="nav-text">Settings</span></a>
+      <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i><span class="nav-text">Logout</span></button>
     </nav>
-    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
+    <div class="footer-text text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
   </aside>
 
   <!-- MAIN -->
-  <main class="flex-1 ml-64 p-8">
+  <main id="mainContent" class="flex-1 ml-64 p-8 transition-all duration-300">
     <div class="max-w-6xl mx-auto">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-extrabold text-gray-800">📄 Receipts</h1>
@@ -62,6 +73,19 @@
 
     if (!firmId) window.location.href = '/login.html';
     document.getElementById('firmDisplay').innerText = firmName || 'My Firm';
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const main = document.getElementById('mainContent');
+      sidebar.classList.toggle('sidebar-collapsed');
+      if (sidebar.classList.contains('sidebar-collapsed')) {
+        main.classList.remove('ml-64');
+        main.classList.add('ml-[72px]');
+      } else {
+        main.classList.remove('ml-[72px]');
+        main.classList.add('ml-64');
+      }
+    }
 
     async function loadReceipts() {
       try {
