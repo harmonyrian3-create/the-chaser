@@ -5,35 +5,88 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Upload Receipt – The Chaser</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     * { font-family: 'Inter', sans-serif; }
-    .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.4); }
+    .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
     .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
     .btn-grad:hover { transform: scale(1.02); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.4); }
+    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: #2563eb; }
+    .nav-link.active { background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600; }
+    .sidebar-collapsed { width: 72px !important; }
+    .sidebar-collapsed .nav-text { display: none; }
+    .sidebar-collapsed .brand-text { display: none; }
+    .sidebar-collapsed .nav-link { justify-content: center; padding: 12px; }
+    .sidebar-collapsed .nav-link i { font-size: 1.25rem; }
+    .sidebar-collapsed .footer-text { display: none; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center min-h-screen px-4">
+<body class="bg-gray-50 flex min-h-screen">
 
-  <!-- NO NAVBAR -->
-
-  <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center">
-    <a href="/" class="text-2xl font-extrabold text-blue-600 block">📧 The Chaser</a>
-    <span class="text-5xl block my-4">📸</span>
-    <h2 class="text-2xl font-bold text-gray-800">Upload Receipt</h2>
-    <p class="text-gray-500 text-sm mt-1">Your accountant needs this receipt.</p>
-
-    <div class="mt-6 space-y-4">
-      <input type="file" id="fileInput" accept="image/*" class="w-full border border-gray-200 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-      <input id="clientId" type="text" placeholder="Your Client ID" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition" />
-      <button onclick="uploadReceipt()" class="w-full btn-grad text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/30">Upload Now</button>
-      <div id="result" class="text-sm mt-2"></div>
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-4 flex flex-col transition-all duration-300">
+    <div class="flex items-center justify-between mb-6">
+      <span class="brand-text text-2xl font-extrabold text-blue-600">📧 The Chaser</span>
+      <button onclick="toggleSidebar()" class="text-gray-500 hover:text-blue-600 transition">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
     </div>
-  </div>
+    <nav class="flex-1 space-y-1.5">
+      <a href="/dashboard.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i><span class="nav-text">Dashboard</span></a>
+      <a href="/upload.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-upload w-5 text-blue-500"></i><span class="nav-text">Upload</span></a>
+      <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i><span class="nav-text">Pricing</span></a>
+      <a href="/receipts.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i><span class="nav-text">Receipts</span></a>
+      <a href="/settings.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-blue-500"></i><span class="nav-text">Settings</span></a>
+      <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i><span class="nav-text">Logout</span></button>
+    </nav>
+    <div class="footer-text text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main id="mainContent" class="flex-1 ml-64 p-8 transition-all duration-300">
+    <div class="max-w-md mx-auto">
+      <div class="bg-white rounded-3xl shadow-2xl p-8 text-center border border-gray-100">
+        <span class="text-5xl block my-4">📸</span>
+        <h2 class="text-2xl font-bold text-gray-800">Upload Receipt</h2>
+        <p class="text-gray-500 text-sm mt-1">Your accountant needs this receipt.</p>
+
+        <div class="mt-6 space-y-4">
+          <input type="file" id="fileInput" accept="image/*" class="w-full border border-gray-200 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+          <input id="clientId" type="text" placeholder="Your Client ID" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition" />
+          <button onclick="uploadReceipt()" class="w-full btn-grad text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/30">Upload Now</button>
+          <div id="result" class="text-sm mt-2"></div>
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script>
     const API_URL = window.location.origin;
+    const firmId = localStorage.getItem('chaser_firm_id');
+    const firmName = localStorage.getItem('chaser_firm_name');
+
+    if (!firmId) window.location.href = '/login.html';
+    document.getElementById('firmDisplay').innerText = firmName || 'My Firm';
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const main = document.getElementById('mainContent');
+      sidebar.classList.toggle('sidebar-collapsed');
+      if (sidebar.classList.contains('sidebar-collapsed')) {
+        main.classList.remove('ml-64');
+        main.classList.add('ml-[72px]');
+      } else {
+        main.classList.remove('ml-[72px]');
+        main.classList.add('ml-64');
+      }
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('chaser_firm_id');
+      localStorage.removeItem('chaser_firm_name');
+      window.location.href = '/';
+    }
 
     async function uploadReceipt() {
       const fileInput = document.getElementById('fileInput');
