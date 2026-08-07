@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>The Chaser - Receipt Collection Automation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+  <div class="max-w-4xl mx-auto space-y-6">
+    
+    <!-- Header -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h1 class="text-3xl font-bold text-blue-600">📧 The Chaser</h1>
+      <p class="text-gray-600">Stop chasing receipts. Let our AI do it for you.</p>
+      <p class="text-xs text-gray-400 mt-1">Automated reminders · OCR Receipt Scanning · AI Categorization</p>
+    </div>
+
+    <!-- SECTION 1: Register Firm -->
+    <div id="registerSection" class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
+      <h2 class="text-xl font-semibold mb-2">🏢 Register Your Firm</h2>
+      <p class="text-gray-600 text-sm mb-4">Start your 14-day free trial. No credit card required.</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input id="firmName" placeholder="Firm Name (e.g. Smith & Associates)" class="border p-2 rounded w-full">
+        <input id="firmEmail" placeholder="Business Email (e.g. info@smith.com)" class="border p-2 rounded w-full">
+      </div>
+      <button onclick="registerFirm()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+        🚀 Start Free Trial
+      </button>
+      <div id="registerResult" class="mt-3 text-sm"></div>
+      
+      <div class="mt-4 text-sm text-gray-500 border-t pt-3">
+        <p>Already have an account? <a href="#" onclick="showManualFirmInput()" class="text-blue-600 hover:underline">Enter your Firm ID here</a>.</p>
+        <div id="manualFirmInput" class="hidden mt-2">
+          <input id="manualFirmIdInput" placeholder="Paste your Firm ID" class="border p-2 rounded w-full md:w-1/2">
+          <button onclick="saveManualFirmId()" class="mt-2 bg-gray-600 text-white px-4 py-1 rounded text-sm hover:bg-gray-700">Sign In</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Dashboard (Clients) -->
+    <div id="clientSection" class="bg-white p-6 rounded-lg shadow border-l-4 border-green-500 hidden">
+      <div class="flex justify-between items-center flex-wrap">
+        <h2 class="text-xl font-semibold">📋 Client Manager</h2>
+        <span id="activeFirmDisplay" class="text-sm bg-gray-100 px-3 py-1 rounded text-gray-700">Firm: <span id="firmNameDisplay" class="font-bold">-</span></span>
+      </div>
+      <p class="text-gray-600 text-sm mb-4">Add a client and we will automatically chase them for receipts.</p>
+      
+      <input type="hidden" id="firmId" value="">
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input id="clientName" placeholder="Client Full Name" class="border p-2 rounded w-full">
+        <input id="clientEmail" placeholder="Client Email" class="border p-2 rounded w-full">
+        <input id="clientPhone" placeholder="Phone (Optional)" class="border p-2 rounded w-full">
+      </div>
+      
+      <button onclick="addClient()" class="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+        ➕ Add Client & Send Reminder
+      </button>
+      <div id="clientResult" class="mt-3 text-sm"></div>
+      
+      <hr class="my-4">
+      <div class="text-sm text-gray-600 grid md:grid-cols-2 gap-4">
+        <div>
+          <h3 class="font-semibold">✅ How it works</h3>
+          <ol class="list-decimal ml-5 mt-1 space-y-1">
+            <li>Add a client here.</li>
+            <li>They receive a branded email with an upload link.</li>
+            <li>They upload a photo of their receipt.</li>
+            <li>AI reads it and categorizes (Meals, Travel, etc.).</li>
+          </ol>
+        </div>
+        <div>
+          <h3 class="font-semibold">⏰ Auto-Pilot</h3>
+          <ul class="list-disc ml-5 mt-1 space-y-1">
+            <li>Daily reminders at 9 AM until they upload.</li>
+            <li>Escalation emails for clients who ignore.</li>
+            <li>All receipts organized by client.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000';
+
+    window.onload = function() {
+      const storedFirmId = localStorage.getItem('chaser_firm_id');
+      const storedFirmName = localStorage.getItem('chaser_firm_name');
+      
+      if (storedFirmId && storedFirmName) {
+        document.getElementById('registerSection').style.display = 'none';
+        document.getElementById('clientSection').classList.remove('hidden');
+        document.getElementById('firmId').value = storedFirmId;
+        document.getElementById('firmNameDisplay').innerText = storedFirmName;
+      } else {
+        document.getElementById('registerSection').style.display = 'block';
+        document.getElementById('clientSection').classList.add('hidden');
+      }
+    };
+
+    async function registerFirm() {
+      const name = document.getElementById('firmName').value.trim();
+      const email = document.getElementById('firmEmail').value.trim();
+
+      if (!name || !email) {
+        document.getElementById('registerResult').innerHTML = `<p class="text-red-600">Please fill in both fields.</p>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/api/firms`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem('chaser_firm_id', data.firm.id);
+          localStorage.setItem('chaser_firm_name', data.firm.name);
+          
+          document.getElementById('registerResult').innerHTML = `<p class="text-green-600">✅ Account created! Redirecting...</p>`;
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          document.getElementById('registerResult').innerHTML = `<p class="text-red-600">❌ Error: ${data.error}</p>`;
+        }
+      } catch (err) {
+        document.getElementById('registerResult').innerHTML = `<p class="text-red-600">❌ Cannot connect to server.</p>`;
+      }
+    }
+
+    async function addClient() {
+      const name = document.getElementById('clientName').value.trim();
+      const email = document.getElementById('clientEmail').value.trim();
+      const phone = document.getElementById('clientPhone').value.trim();
+      const firm_id = document.getElementById('firmId').value;
+
+      if (!name || !email) {
+        document.getElementById('clientResult').innerHTML = `<p class="text-red-600">Name and Email are required.</p>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/api/clients`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firm_id, name, email, phone })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById('clientResult').innerHTML = `<p class="text-green-600">✅ ${data.client.name} added! Sending email...</p>`;
+          document.getElementById('clientName').value = '';
+          document.getElementById('clientEmail').value = '';
+          document.getElementById('clientPhone').value = '';
+
+          // Send immediate reminder
+          await fetch(`${API_URL}/api/send-reminder`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client_id: data.client.id })
+          });
+          document.getElementById('clientResult').innerHTML += `<p class="text-blue-600">📧 Reminder sent!</p>`;
+        } else {
+          document.getElementById('clientResult').innerHTML = `<p class="text-red-600">❌ ${data.error}</p>`;
+        }
+      } catch (err) {
+        document.getElementById('clientResult').innerHTML = `<p class="text-red-600">❌ Server error.</p>`;
+      }
+    }
+
+    function showManualFirmInput() {
+      document.getElementById('manualFirmInput').classList.toggle('hidden');
+    }
+
+    function saveManualFirmId() {
+      const id = document.getElementById('manualFirmIdInput').value.trim();
+      if (!id) return alert('Please paste your Firm ID');
+      localStorage.setItem('chaser_firm_id', id);
+      localStorage.setItem('chaser_firm_name', 'My Firm');
+      window.location.reload();
+    }
+  </script>
+
+</body>
+</html>
