@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Chaser – Start Free Trial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <div class="max-w-md mx-auto px-4 py-12">
+    
+    <!-- Logo / Brand -->
+    <div class="text-center mb-8">
+      <a href="/" class="text-3xl font-bold text-blue-600">📧 The Chaser</a>
+      <p class="text-gray-500 text-sm mt-1">Stop chasing receipts. Let our AI do it for you.</p>
+    </div>
+
+    <!-- Register Card -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <h2 class="text-2xl font-bold text-gray-900">🚀 Start Your Free Trial</h2>
+      <p class="text-gray-500 text-sm mt-1">No credit card required. 14 days full access.</p>
+
+      <form id="registerForm" class="mt-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Firm Name</label>
+          <input 
+            id="firmName" 
+            type="text" 
+            placeholder="Smith & Associates" 
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            required
+          >
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Business Email</label>
+          <input 
+            id="firmEmail" 
+            type="email" 
+            placeholder="info@smith.com" 
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            required
+          >
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full btn-primary text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition"
+        >
+          <i class="fas fa-rocket mr-2"></i> Start Free Trial
+        </button>
+
+        <div id="registerResult" class="text-sm mt-3 text-center"></div>
+      </form>
+
+      <hr class="my-6 border-gray-200">
+
+      <p class="text-sm text-gray-500 text-center">
+        Already have an account? 
+        <a href="#" onclick="showManualFirmInput()" class="text-blue-600 hover:underline font-medium">Sign in here</a>
+      </p>
+
+      <div id="manualFirmInput" class="hidden mt-4">
+        <div class="flex gap-3">
+          <input id="manualFirmIdInput" type="text" placeholder="Paste your Firm ID" class="flex-1 border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button onclick="saveManualFirmId()" class="bg-gray-700 text-white px-6 py-2 rounded-xl hover:bg-gray-800 transition">Sign In</button>
+        </div>
+        <div id="manualResult" class="text-sm mt-2"></div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="text-center text-xs text-gray-400 mt-8">
+      By signing up, you agree to our Terms of Service and Privacy Policy.
+    </p>
+  </div>
+
+  <script>
+    const API_URL = 'https://the-chaser.onrender.com'; // Use your live URL
+
+    // --- Register Firm ---
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('firmName').value.trim();
+      const email = document.getElementById('firmEmail').value.trim();
+
+      if (!name || !email) {
+        document.getElementById('registerResult').innerHTML = `
+          <p class="text-red-600">⚠️ Please fill in both fields.</p>
+        `;
+        return;
+      }
+
+      document.getElementById('registerResult').innerHTML = `
+        <p class="text-blue-600">⏳ Creating your account...</p>
+      `;
+
+      try {
+        const res = await fetch(`${API_URL}/api/firms`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // Save to localStorage and redirect to dashboard
+          localStorage.setItem('chaser_firm_id', data.firm.id);
+          localStorage.setItem('chaser_firm_name', data.firm.name);
+
+          document.getElementById('registerResult').innerHTML = `
+            <p class="text-green-600">✅ Account created! Redirecting to dashboard...</p>
+          `;
+
+          setTimeout(() => {
+            window.location.href = '/dashboard.html';
+          }, 1500);
+        } else {
+          document.getElementById('registerResult').innerHTML = `
+            <p class="text-red-600">❌ ${data.error}</p>
+          `;
+        }
+      } catch (err) {
+        document.getElementById('registerResult').innerHTML = `
+          <p class="text-red-600">❌ Cannot connect to server. Please try again.</p>
+        `;
+        console.error(err);
+      }
+    });
+
+    // --- Manual Sign In ---
+    function showManualFirmInput() {
+      document.getElementById('manualFirmInput').classList.toggle('hidden');
+    }
+
+    function saveManualFirmId() {
+      const id = document.getElementById('manualFirmIdInput').value.trim();
+      if (!id) {
+        document.getElementById('manualResult').innerHTML = `
+          <p class="text-red-500">Please paste your Firm ID</p>
+        `;
+        return;
+      }
+
+      localStorage.setItem('chaser_firm_id', id);
+      localStorage.setItem('chaser_firm_name', 'My Firm');
+      window.location.href = '/dashboard.html';
+    }
+  </script>
+</body>
+</html>
