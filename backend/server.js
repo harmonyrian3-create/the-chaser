@@ -144,7 +144,7 @@ app.post('/api/send-reminder', async (req, res) => {
     if (!client) throw new Error('Client not found');
 
     // ✅ NOW this points to the correct local URL!
-    const uploadLink = `http://localhost:5000/upload.html?client=${client.id}`;
+    const uploadLink = `${process.env.BASE_URL}/upload.html?client=${client.id}`;
 
     // Send professional email via Resend
     await resend.emails.send({
