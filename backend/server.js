@@ -24,6 +24,9 @@ app.get('/register.html', (req, res) => res.sendFile(path.join(frontendPath, 're
 app.get('/login.html', (req, res) => res.sendFile(path.join(frontendPath, 'login.html')));
 app.get('/dashboard.html', (req, res) => res.sendFile(path.join(frontendPath, 'dashboard.html')));
 app.get('/upload.html', (req, res) => res.sendFile(path.join(frontendPath, 'upload.html')));
+app.get('/pricing.html', (req, res) => res.sendFile(path.join(frontendPath, 'pricing.html')));
+app.get('/receipts.html', (req, res) => res.sendFile(path.join(frontendPath, 'receipts.html')));
+app.get('/settings.html', (req, res) => res.sendFile(path.join(frontendPath, 'settings.html')));
 
 // --- 2. CONNECT TO NEON DATABASE ---
 const pool = new Pool({
@@ -40,7 +43,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // --- 4. CREATE / UPDATE TABLES ---
 const initDB = async () => {
   try {
-    // Create firms table if not exists
+    // Firms table with password column
     await pool.query(`
       CREATE TABLE IF NOT EXISTS firms (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -54,6 +57,7 @@ const initDB = async () => {
     await pool.query(`
       ALTER TABLE firms ADD COLUMN IF NOT EXISTS password TEXT;
     `);
+    // Clients table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS clients (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -66,6 +70,7 @@ const initDB = async () => {
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
+    // Receipts table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS receipts (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -76,7 +81,7 @@ const initDB = async () => {
         upload_date TIMESTAMP DEFAULT NOW()
       );
     `);
-    console.log('✅ Database tables ready (password column added).');
+    console.log('✅ Database tables ready.');
   } catch (err) {
     console.error('❌ DB Init Error:', err.message);
   }
@@ -118,6 +123,52 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// GET FIRM PROFILE
+app.get('/api/firms/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT id, name, email FROM firms WHERE id = $1`,
+      [id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Firm not found' });
+    res.json({ success: true, firm: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// UPDATE FIRM PROFILE (name, email)
+app.put('/api/firms/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email } = req.body;
+    const result = await pool.query(
+      `UPDATE firms SET name = $1, email = $2 WHERE id = $3 RETURNING id, name, email`,
+      [name, email, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Firm not found' });
+    res.json({ success: true, firm: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// UPDATE PASSWORD
+app.put('/api/firms/:id/password', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    await pool.query(`UPDATE firms SET password = $1 WHERE id = $2`, [password, id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET CLIENTS FOR FIRM
 app.get('/api/clients', async (req, res) => {
   try {
@@ -148,20 +199,53 @@ app.post('/api/clients', async (req, res) => {
   }
 });
 
+// DELETE CLIENT
+app.delete('/api/clients/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query(`DELETE FROM clients WHERE id = $1`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET RECEIPTS FOR FIRM (with client name)
+app.get('/api/receipts', async (req, res) => {
+  try {
+    const { firm_id } = req.query;
+    if (!firm_id) return res.status(400).json({ error: 'firm_id required' });
+    const result = await pool.query(
+      `SELECT r.*, c.name as client_name 
+       FROM receipts r 
+       JOIN clients c ON r.client_id = c.id 
+       WHERE c.firm_id = $1 
+       ORDER BY r.upload_date DESC`,
+      [firm_id]
+    );
+    res.json({ success: true, receipts: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // UPLOAD RECEIPT
 app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
   try {
     const { client_id } = req.body;
     const file = req.file;
-    if (!file) return res.status(400).json({ error: 'No file' });
+    if (!file) return res.status(400).json({ error: 'No file uploaded' });
 
+    // OCR
     const { data: { text } } = await Tesseract.recognize(file.buffer, 'eng');
     const extractedText = text;
 
+    // AI Categorization
     const prompt = `Classify this receipt text into ONE word: "Meals", "Travel", "Supplies", or "Other". Receipt: """${extractedText}"""`;
     const result = await model.generateContent(prompt);
     const category = result.response.text().trim();
 
+    // Save to database
     await pool.query(
       `INSERT INTO receipts (client_id, file_url, extracted_text, category) VALUES ($1, $2, $3, $4)`,
       [client_id, 'processed_in_memory', extractedText, category]

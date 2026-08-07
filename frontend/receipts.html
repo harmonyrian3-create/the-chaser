@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipts – The Chaser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
+    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: #2563eb; }
+    .nav-link.active { background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600; }
+    .receipt-card { transition: all 0.3s; }
+    .receipt-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body class="bg-gray-50 flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-6 flex flex-col">
+    <div class="text-2xl font-extrabold text-blue-600 mb-8">📧 The Chaser</div>
+    <nav class="flex-1 space-y-1.5">
+      <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
+      <a href="/dashboard.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
+      <a href="/receipts.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i> Receipts</a>
+      <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i> Pricing</a>
+      <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
+    </nav>
+    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 ml-64 p-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-extrabold text-gray-800">📄 Receipts</h1>
+        <div class="flex gap-2">
+          <input id="searchInput" placeholder="Search receipts..." class="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
+          <select id="filterCategory" class="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition">
+            <option value="">All Categories</option>
+            <option value="Meals">Meals</option>
+            <option value="Travel">Travel</option>
+            <option value="Supplies">Supplies</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="receiptList" class="space-y-4">
+        <p class="text-gray-400 text-center py-12">No receipts uploaded yet.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = window.location.origin;
+    const firmId = localStorage.getItem('chaser_firm_id');
+    const firmName = localStorage.getItem('chaser_firm_name');
+
+    if (!firmId) window.location.href = '/login.html';
+    document.getElementById('firmDisplay').innerText = firmName || 'My Firm';
+
+    async function loadReceipts() {
+      try {
+        const res = await fetch(`${API_URL}/api/receipts?firm_id=${firmId}`);
+        const data = await res.json();
+        if (data.success) renderReceipts(data.receipts);
+      } catch (err) { console.error(err); }
+    }
+
+    function renderReceipts(receipts) {
+      const container = document.getElementById('receiptList');
+      if (!receipts || receipts.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center py-12">No receipts uploaded yet.</p>';
+        return;
+      }
+
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const category = document.getElementById('filterCategory').value;
+
+      const filtered = receipts.filter(r => {
+        const matchSearch = r.extracted_text?.toLowerCase().includes(search) || false;
+        const matchCategory = category ? r.category === category : true;
+        return matchSearch && matchCategory;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center py-12">No receipts match your filters.</p>';
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(r => {
+        const categoryColors = {
+          'Meals': 'bg-yellow-100 text-yellow-800',
+          'Travel': 'bg-blue-100 text-blue-800',
+          'Supplies': 'bg-green-100 text-green-800',
+          'Other': 'bg-gray-100 text-gray-800'
+        };
+        html += `
+          <div class="receipt-card bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <p class="text-sm text-gray-400">${new Date(r.upload_date).toLocaleDateString()}</p>
+                <p class="text-gray-700 mt-1 text-sm">${r.extracted_text || 'No text extracted'}</p>
+              </div>
+              <span class="text-sm ${categoryColors[r.category] || 'bg-gray-100 text-gray-800'} px-4 py-1 rounded-full">${r.category || 'Uncategorized'}</span>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    document.getElementById('searchInput').addEventListener('input', loadReceipts);
+    document.getElementById('filterCategory').addEventListener('change', loadReceipts);
+
+    function logoutUser() {
+      localStorage.removeItem('chaser_firm_id');
+      localStorage.removeItem('chaser_firm_name');
+      window.location.href = '/';
+    }
+
+    loadReceipts();
+  </script>
+</body>
+</html>

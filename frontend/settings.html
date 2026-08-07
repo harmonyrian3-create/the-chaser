@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings – The Chaser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
+    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: #2563eb; }
+    .nav-link.active { background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600; }
+    .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
+    .btn-grad:hover { transform: scale(1.02); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.4); }
+  </style>
+</head>
+<body class="bg-gray-50 flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-6 flex flex-col">
+    <div class="text-2xl font-extrabold text-blue-600 mb-8">📧 The Chaser</div>
+    <nav class="flex-1 space-y-1.5">
+      <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
+      <a href="/dashboard.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
+      <a href="/receipts.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i> Receipts</a>
+      <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i> Pricing</a>
+      <a href="/settings.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-blue-500"></i> Settings</a>
+      <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
+    </nav>
+    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 ml-64 p-8">
+    <div class="max-w-3xl mx-auto">
+      <h1 class="text-3xl font-extrabold text-gray-800 mb-8">⚙️ Settings</h1>
+
+      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Firm Information</h3>
+        <div class="space-y-4">
+          <div><label class="block text-sm font-medium text-gray-700">Firm Name</label><input id="firmNameInput" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500"></div>
+          <div><label class="block text-sm font-medium text-gray-700">Email</label><input id="firmEmailInput" type="email" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500"></div>
+          <button onclick="updateProfile()" class="btn-grad text-white px-6 py-2 rounded-xl font-semibold">Save Changes</button>
+          <div id="profileResult" class="text-sm mt-2"></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">🔑 Change Password</h3>
+        <div class="space-y-4">
+          <div><label class="block text-sm font-medium text-gray-700">New Password</label><input id="newPassword" type="password" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500" minlength="6"></div>
+          <button onclick="updatePassword()" class="btn-grad text-white px-6 py-2 rounded-xl font-semibold">Update Password</button>
+          <div id="passwordResult" class="text-sm mt-2"></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">💳 Subscription</h3>
+        <p class="text-gray-600">You are on the <span class="font-semibold text-blue-600" id="subscriptionStatus">Free Trial</span> plan.</p>
+        <a href="/pricing.html" class="inline-block mt-4 text-blue-600 font-semibold hover:underline">Upgrade Plan →</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = window.location.origin;
+    const firmId = localStorage.getItem('chaser_firm_id');
+    const firmName = localStorage.getItem('chaser_firm_name');
+
+    if (!firmId) window.location.href = '/login.html';
+    document.getElementById('firmDisplay').innerText = firmName || 'My Firm';
+    document.getElementById('firmNameInput').value = firmName || '';
+    document.getElementById('firmEmailInput').value = '';
+
+    async function updateProfile() {
+      const name = document.getElementById('firmNameInput').value.trim();
+      const email = document.getElementById('firmEmailInput').value.trim();
+      try {
+        const res = await fetch(`${API_URL}/api/firms/${firmId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('chaser_firm_name', name);
+          document.getElementById('profileResult').innerHTML = '<p class="text-green-600">✅ Profile updated!</p>';
+          document.getElementById('firmDisplay').innerText = name;
+        } else {
+          document.getElementById('profileResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
+        }
+      } catch (err) {
+        document.getElementById('profileResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
+      }
+    }
+
+    async function updatePassword() {
+      const password = document.getElementById('newPassword').value.trim();
+      if (password.length < 6) {
+        document.getElementById('passwordResult').innerHTML = '<p class="text-red-500">Password must be at least 6 characters.</p>';
+        return;
+      }
+      try {
+        const res = await fetch(`${API_URL}/api/firms/${firmId}/password`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('passwordResult').innerHTML = '<p class="text-green-600">✅ Password updated!</p>';
+          document.getElementById('newPassword').value = '';
+        } else {
+          document.getElementById('passwordResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
+        }
+      } catch (err) {
+        document.getElementById('passwordResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
+      }
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('chaser_firm_id');
+      localStorage.removeItem('chaser_firm_name');
+      window.location.href = '/';
+    }
+  </script>
+</body>
+</html>

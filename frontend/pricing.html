@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing – The Chaser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
+    .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
+    .btn-grad:hover { transform: scale(1.03); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.5); }
+    .pricing-card { transition: all 0.4s; }
+    .pricing-card:hover { transform: translateY(-8px); box-shadow: 0 30px 50px -15px rgba(0,0,0,0.15); }
+    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: #2563eb; }
+    .nav-link.active { background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600; }
+  </style>
+</head>
+<body class="bg-gray-50 flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-6 flex flex-col">
+    <div class="text-2xl font-extrabold text-blue-600 mb-8">📧 The Chaser</div>
+    <nav class="flex-1 space-y-1.5">
+      <a href="/" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
+      <a href="/dashboard.html" id="navDashboard" class="nav-link hidden flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
+      <a href="/pricing.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i> Pricing</a>
+      <a href="/login.html" id="navLogin" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-sign-in-alt w-5 text-blue-500"></i> Login</a>
+      <a href="/register.html" id="navRegister" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-user-plus w-5 text-blue-500"></i> Register</a>
+      <button onclick="logoutUser()" id="navLogout" class="nav-link hidden w-full text-left flex items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
+    </nav>
+    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">v1.0</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 ml-64 p-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-extrabold text-gray-800">Simple, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">transparent</span> pricing</h1>
+        <p class="text-gray-500 mt-2">Start free, pay as you grow. Cancel anytime.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <!-- Solo -->
+        <div class="pricing-card bg-white rounded-3xl p-8 border-2 border-gray-200 shadow-lg">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-xl font-bold text-gray-800">Solo</h3>
+              <p class="text-3xl font-extrabold text-gray-900 mt-2">$199</p>
+              <p class="text-sm text-gray-400">per month</p>
+            </div>
+            <span class="bg-gray-100 text-gray-600 text-xs font-semibold px-4 py-1 rounded-full">Solo</span>
+          </div>
+          <ul class="mt-6 space-y-3 text-gray-600">
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-blue-600"></i> Up to 50 clients</li>
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-blue-600"></i> AI receipt chasing</li>
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-blue-600"></i> OCR & categorization</li>
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-blue-600"></i> Email support</li>
+          </ul>
+          <a href="/register.html" class="block text-center mt-8 border-2 border-blue-600 text-blue-600 font-semibold py-3 rounded-xl hover:bg-blue-50 transition">Start Free Trial</a>
+        </div>
+
+        <!-- Team -->
+        <div class="pricing-card bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-8 text-white shadow-2xl shadow-blue-500/25 relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-semibold px-4 py-1 rounded-full">Most Popular</span>
+          </div>
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-xl font-bold">Team</h3>
+              <p class="text-3xl font-extrabold mt-2">$499</p>
+              <p class="text-sm text-blue-200">per month</p>
+            </div>
+          </div>
+          <ul class="mt-6 space-y-3 text-blue-100">
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-white"></i> Unlimited clients</li>
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-white"></i> AI receipt chasing</li>
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-white"></i> OCR & categorization</li>
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-white"></i> Priority support</li>
+            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-white"></i> Multiple users</li>
+          </ul>
+          <a href="/register.html" class="block text-center mt-8 bg-white text-blue-600 font-semibold py-3 rounded-xl hover:bg-blue-50 transition">Start Free Trial</a>
+        </div>
+      </div>
+
+      <div class="text-center text-sm text-gray-400 mt-8">
+        All plans include a 14-day free trial. No credit card required.
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const firmId = localStorage.getItem('chaser_firm_id');
+    const navDashboard = document.getElementById('navDashboard');
+    const navLogout = document.getElementById('navLogout');
+    const navLogin = document.getElementById('navLogin');
+    const navRegister = document.getElementById('navRegister');
+
+    if (firmId) {
+      navDashboard.classList.remove('hidden');
+      navLogout.classList.remove('hidden');
+      navLogin.classList.add('hidden');
+      navRegister.classList.add('hidden');
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('chaser_firm_id');
+      localStorage.removeItem('chaser_firm_name');
+      window.location.href = '/';
+    }
+  </script>
+</body>
+</html>
