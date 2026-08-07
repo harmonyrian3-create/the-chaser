@@ -1,111 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Chaser – Stop Chasing Receipts</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     * { font-family: 'Inter', sans-serif; }
-    .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
-    .hero-grad { background: radial-gradient(ellipse at top, #1e3a8a, #0f172a); }
     .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
     .btn-grad:hover { transform: scale(1.03); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.5); }
+    .hero-grad { background: radial-gradient(ellipse at top, #1e3a8a, #0f172a); }
     .feature-card { transition: all 0.4s; }
     .feature-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); }
-    .nav-link { transition: all 0.2s; }
-    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: #2563eb; }
-    .nav-link.active { background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600; }
   </style>
 </head>
-<body class="bg-gray-50 flex min-h-screen">
+<body class="bg-gray-50">
 
-  <!-- ========== SIDEBAR ========== -->
-  <aside class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-6 flex flex-col">
-    <div class="text-2xl font-extrabold text-blue-600 mb-8">📧 The Chaser</div>
-    <nav class="flex-1 space-y-1.5">
-      <a href="/" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-home w-5 text-blue-500"></i> Home</a>
-      <a href="/dashboard.html" id="navDashboard" class="nav-link hidden flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i> Dashboard</a>
-      <a href="/login.html" id="navLogin" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-sign-in-alt w-5 text-blue-500"></i> Login</a>
-      <a href="/register.html" id="navRegister" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-user-plus w-5 text-blue-500"></i> Register</a>
-      <button onclick="logoutUser()" id="navLogout" class="nav-link hidden w-full text-left flex items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i> Logout</button>
-    </nav>
-    <div class="text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">v1.0 • Made with ❤️ from Kenya</div>
-  </aside>
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-200 fixed w-full top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
+      <span class="text-2xl font-extrabold text-blue-600">📧 The Chaser</span>
+      <div class="flex items-center gap-6">
+        <a href="/pricing.html" class="text-gray-600 hover:text-blue-600 transition font-medium">Pricing</a>
+        <a href="/login.html" class="text-gray-600 hover:text-blue-600 transition font-medium">Log in</a>
+        <a href="/register.html" class="btn-grad text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg shadow-blue-500/30">Start Free Trial</a>
+      </div>
+    </div>
+  </nav>
 
-  <!-- ========== MAIN CONTENT ========== -->
-  <main class="flex-1 ml-64">
-
-    <!-- Hero -->
-    <section class="hero-grad text-white pt-20 pb-20 px-12 min-h-[90vh] flex items-center">
-      <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center w-full">
-        <div>
-          <div class="inline-block bg-blue-500/20 text-blue-200 text-sm px-4 py-1 rounded-full backdrop-blur-sm mb-4">🚀 AI-Powered Receipt Management</div>
-          <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">Stop chasing <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">receipts.</span></h1>
-          <p class="text-gray-300 text-lg mt-4">Let AI chase your clients for receipts, OCR them, and categorize expenses automatically. Save 10+ hours a week.</p>
-          <div class="flex flex-wrap gap-4 mt-8">
-            <a href="/register.html" class="btn-grad text-white px-8 py-4 rounded-xl font-semibold shadow-2xl shadow-blue-500/30">Get Started Free</a>
-            <a href="#features" class="border border-white/30 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/10 transition">Learn More</a>
-          </div>
-          <p class="text-gray-400 text-sm mt-4">✨ No credit card • 14-day free trial • Cancel anytime</p>
+  <!-- HERO -->
+  <section class="hero-grad text-white pt-32 pb-20 px-6 min-h-screen flex items-center">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center w-full">
+      <div>
+        <div class="inline-block bg-blue-500/20 text-blue-200 text-sm px-4 py-1 rounded-full backdrop-blur-sm mb-4">🚀 AI-Powered Receipt Management</div>
+        <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">Stop chasing <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">receipts.</span></h1>
+        <p class="text-gray-300 text-lg mt-4">Let AI chase your clients for receipts, OCR them, and categorize expenses automatically. Save 10+ hours a week.</p>
+        <div class="flex flex-wrap gap-4 mt-8">
+          <a href="/register.html" class="btn-grad text-white px-8 py-4 rounded-xl font-semibold shadow-2xl shadow-blue-500/30">Get Started Free</a>
+          <a href="#features" class="border border-white/30 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/10 transition">Learn More</a>
         </div>
-        <div class="relative">
-          <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/20 shadow-2xl">
-            <div class="flex items-center gap-2 mb-4"><span class="w-3 h-3 bg-red-400 rounded-full"></span><span class="w-3 h-3 bg-yellow-400 rounded-full"></span><span class="w-3 h-3 bg-green-400 rounded-full"></span><span class="text-sm text-gray-300 ml-2">Recent Receipts</span></div>
-            <div class="space-y-3">
-              <div class="bg-white/10 p-3 rounded-xl flex justify-between items-center backdrop-blur-sm text-white"><span>☕ Coffee Shop</span><span class="text-xs bg-yellow-500/30 text-yellow-200 px-3 py-1 rounded-full">Meals</span></div>
-              <div class="bg-white/10 p-3 rounded-xl flex justify-between items-center backdrop-blur-sm text-white"><span>✈️ Flight NYC</span><span class="text-xs bg-blue-500/30 text-blue-200 px-3 py-1 rounded-full">Travel</span></div>
-              <div class="bg-white/10 p-3 rounded-xl flex justify-between items-center backdrop-blur-sm text-white"><span>🖨️ Office Supplies</span><span class="text-xs bg-green-500/30 text-green-200 px-3 py-1 rounded-full">Supplies</span></div>
-            </div>
+        <p class="text-gray-400 text-sm mt-4">✨ No credit card • 14-day free trial • Cancel anytime</p>
+      </div>
+      <div class="relative">
+        <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/20 shadow-2xl">
+          <div class="flex items-center gap-2 mb-4"><span class="w-3 h-3 bg-red-400 rounded-full"></span><span class="w-3 h-3 bg-yellow-400 rounded-full"></span><span class="w-3 h-3 bg-green-400 rounded-full"></span><span class="text-sm text-gray-300 ml-2">Recent Receipts</span></div>
+          <div class="space-y-3">
+            <div class="bg-white/10 p-3 rounded-xl flex justify-between items-center backdrop-blur-sm text-white"><span>☕ Coffee Shop</span><span class="text-xs bg-yellow-500/30 text-yellow-200 px-3 py-1 rounded-full">Meals</span></div>
+            <div class="bg-white/10 p-3 rounded-xl flex justify-between items-center backdrop-blur-sm text-white"><span>✈️ Flight NYC</span><span class="text-xs bg-blue-500/30 text-blue-200 px-3 py-1 rounded-full">Travel</span></div>
+            <div class="bg-white/10 p-3 rounded-xl flex justify-between items-center backdrop-blur-sm text-white"><span>🖨️ Office Supplies</span><span class="text-xs bg-green-500/30 text-green-200 px-3 py-1 rounded-full">Supplies</span></div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Features -->
-    <section id="features" class="py-20 px-12 bg-white">
-      <div class="max-w-6xl mx-auto text-center">
-        <h2 class="text-4xl font-bold text-gray-800">Why accounting firms <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">love</span> The Chaser</h2>
-        <div class="grid md:grid-cols-3 gap-8 mt-12">
-          <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">🤖</div><h3 class="text-xl font-bold">AI-Powered Chasing</h3><p class="text-gray-500 mt-2">Auto-emails & SMS clients until they upload receipts.</p></div>
-          <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">📸</div><h3 class="text-xl font-bold">Smart OCR + Categorization</h3><p class="text-gray-500 mt-2">Reads receipt text and sorts into Meals, Travel, Supplies, Other.</p></div>
-          <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">⏳</div><h3 class="text-xl font-bold">Save 10+ Hours/Week</h3><p class="text-gray-500 mt-2">Focus on advisory work, not chasing receipts.</p></div>
-        </div>
+  <!-- FEATURES -->
+  <section id="features" class="py-20 px-6 bg-white">
+    <div class="max-w-6xl mx-auto text-center">
+      <h2 class="text-4xl font-bold text-gray-800">Why accounting firms <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">love</span> The Chaser</h2>
+      <div class="grid md:grid-cols-3 gap-8 mt-12">
+        <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">🤖</div><h3 class="text-xl font-bold">AI-Powered Chasing</h3><p class="text-gray-500 mt-2">Auto-emails & SMS clients until they upload receipts.</p></div>
+        <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">📸</div><h3 class="text-xl font-bold">Smart OCR + Categorization</h3><p class="text-gray-500 mt-2">Reads receipt text and sorts into Meals, Travel, Supplies, Other.</p></div>
+        <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">⏳</div><h3 class="text-xl font-bold">Save 10+ Hours/Week</h3><p class="text-gray-500 mt-2">Focus on advisory work, not chasing receipts.</p></div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-8 px-12 text-center">
-      <p>© 2026 The Chaser. All rights reserved.</p>
-    </footer>
-  </main>
+  <!-- FOOTER -->
+  <footer class="bg-gray-900 text-white py-8 px-6 text-center">
+    <p>© 2026 The Chaser. All rights reserved.</p>
+  </footer>
 
   <script>
-    // Sidebar logic: show/hide dashboard/logout based on login status
+    // Redirect logged-in users to dashboard if they hit home
     const firmId = localStorage.getItem('chaser_firm_id');
-    const navDashboard = document.getElementById('navDashboard');
-    const navLogout = document.getElementById('navLogout');
-    const navLogin = document.getElementById('navLogin');
-    const navRegister = document.getElementById('navRegister');
-
     if (firmId) {
-      navDashboard.classList.remove('hidden');
-      navLogout.classList.remove('hidden');
-      navLogin.classList.add('hidden');
-      navRegister.classList.add('hidden');
-    } else {
-      navDashboard.classList.add('hidden');
-      navLogout.classList.add('hidden');
-      navLogin.classList.remove('hidden');
-      navRegister.classList.remove('hidden');
-    }
-
-    function logoutUser() {
-      localStorage.removeItem('chaser_firm_id');
-      localStorage.removeItem('chaser_firm_name');
-      window.location.href = '/';
+      // Optional: redirect to dashboard if they're logged in
+      // window.location.href = '/dashboard.html';
     }
   </script>
 </body>
