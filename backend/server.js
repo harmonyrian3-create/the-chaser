@@ -10,6 +10,7 @@ const cron = require('node-cron');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use(express.json());
 // --- FRONTEND STATIC FILES ---
 const frontendPath = path.join(__dirname, '..', 'frontend');
 app.use(express.static(frontendPath));
+
 app.get('/', (req, res) => res.sendFile(path.join(frontendPath, 'index.html')));
 app.get('/register.html', (req, res) => res.sendFile(path.join(frontendPath, 'register.html')));
 app.get('/login.html', (req, res) => res.sendFile(path.join(frontendPath, 'login.html')));
@@ -26,6 +28,8 @@ app.get('/pricing.html', (req, res) => res.sendFile(path.join(frontendPath, 'pri
 app.get('/receipts.html', (req, res) => res.sendFile(path.join(frontendPath, 'receipts.html')));
 app.get('/settings.html', (req, res) => res.sendFile(path.join(frontendPath, 'settings.html')));
 app.get('/upload.html', (req, res) => res.sendFile(path.join(frontendPath, 'upload.html')));
+app.get('/forgot-password.html', (req, res) => res.sendFile(path.join(frontendPath, 'forgot-password.html')));
+app.get('/reset-password.html', (req, res) => res.sendFile(path.join(frontendPath, 'reset-password.html')));
 
 // --- DATABASE ---
 const pool = new Pool({
@@ -61,11 +65,15 @@ const initDB = async () => {
         email TEXT UNIQUE NOT NULL,
         name TEXT,
         password TEXT,
+        reset_token TEXT,
+        reset_token_expiry TIMESTAMP,
         subscription_status TEXT DEFAULT 'trial',
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
     await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS password TEXT;`);
+    await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS reset_token TEXT;`);
+    await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS reset_token_expiry TIMESTAMP;`);
     await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'trial';`);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS clients (
@@ -126,6 +134,94 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign({ id: firm.id, email: firm.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ success: true, token, firm: { id: firm.id, name: firm.name, email: firm.email } });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// FORGOT PASSWORD
+app.post('/api/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await pool.query(`SELECT * FROM firms WHERE email = $1`, [email]);
+    if (result.rows.length === 0) {
+      return res.json({ success: true, message: 'If that email exists, a reset link has been sent.' });
+    }
+
+    const firm = result.rows[0];
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 3600000); // 1 hour
+
+    await pool.query(
+      `UPDATE firms SET reset_token = $1, reset_token_expiry = $2 WHERE id = $3`,
+      [token, expiry, firm.id]
+    );
+
+    const resetLink = `${process.env.BASE_URL}/reset-password.html?token=${token}`;
+
+    await resend.emails.send({
+      from: 'The Chaser <onboarding@resend.dev>',
+      to: [email],
+      subject: '🔑 Reset your password',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <div style="background: #1e3a8a; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0;">📧 The Chaser</h1>
+          </div>
+          <div style="padding: 20px;">
+            <h2 style="color: #1e293b;">Reset your password</h2>
+            <p style="color: #475569;">We received a request to reset your password. Click the button below to set a new one.</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetLink}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reset Password</a>
+            </div>
+            <p style="color: #94a3b8; font-size: 12px;">This link expires in 1 hour. If you didn't request this, please ignore this email.</p>
+          </div>
+          <div style="border-top: 1px solid #e2e8f0; padding: 10px; text-align: center; color: #94a3b8; font-size: 12px;">
+            &copy; 2026 The Chaser. All rights reserved.
+          </div>
+        </div>
+      `
+    });
+
+    res.json({ success: true, message: 'If that email exists, a reset link has been sent.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// RESET PASSWORD
+app.post('/api/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    const result = await pool.query(
+      `SELECT * FROM firms WHERE reset_token = $1 AND reset_token_expiry > NOW()`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired token.' });
+    }
+
+    const firm = result.rows[0];
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await pool.query(
+      `UPDATE firms SET password = $1, reset_token = NULL, reset_token_expiry = NULL WHERE id = $2`,
+      [hashedPassword, firm.id]
+    );
+
+    res.json({ success: true, message: 'Password has been reset successfully.' });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -305,9 +401,8 @@ app.post('/api/send-reminder', authenticateToken, async (req, res) => {
     const client = check.rows[0];
     const uploadLink = `${process.env.BASE_URL}/upload.html?client=${client.id}`;
 
-    // Branded Email (Phase D)
     await resend.emails.send({
-      from: 'The Chaser <onboarding@resend.dev>', // Upgrade to custom domain later
+      from: 'The Chaser <onboarding@resend.dev>',
       to: [client.email],
       subject: `📄 Action Required: Upload your receipts for ${client.name}`,
       html: `
@@ -338,21 +433,55 @@ app.post('/api/send-reminder', authenticateToken, async (req, res) => {
   }
 });
 
-// CRON JOB
+// --- CRON JOB (daily at 9 AM) ---
 cron.schedule('0 9 * * *', async () => {
-  console.log('⏰ Running cron...');
+  console.log('⏰ Running daily nagging cron job...');
   try {
-    const res = await pool.query(`SELECT id FROM clients WHERE status = 'awaiting' AND (last_reminder_sent IS NULL OR last_reminder_sent < NOW() - INTERVAL '3 days')`);
-    for (let row of res.rows) {
-      // We need to fetch the firm_id to authenticate, but cron doesn't have a user context.
-      // We'll just send reminders directly via a manual query.
-      // For simplicity, we leave this as is, but we can't use the protected route.
-      // We'll send a simple email directly here or just let the manual button handle it.
-      console.log(`Reminder needed for client ${row.id}`);
+    const result = await pool.query(`
+      SELECT c.id, c.name, c.email, c.firm_id 
+      FROM clients c
+      WHERE c.status = 'awaiting' 
+      AND (c.last_reminder_sent IS NULL OR c.last_reminder_sent < NOW() - INTERVAL '3 days')
+    `);
+    console.log(`Found ${result.rows.length} clients to remind.`);
+    for (let client of result.rows) {
+      // Send reminder email
+      const uploadLink = `${process.env.BASE_URL}/upload.html?client=${client.id}`;
+      try {
+        await resend.emails.send({
+          from: 'The Chaser <onboarding@resend.dev>',
+          to: [client.email],
+          subject: `📄 Reminder: Upload your receipts`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <div style="background: #1e3a8a; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+                <h1 style="color: white; margin: 0;">📧 The Chaser</h1>
+              </div>
+              <div style="padding: 20px;">
+                <h2 style="color: #1e293b;">Hi ${client.name},</h2>
+                <p style="color: #475569;">We noticed you haven't uploaded your receipts yet. Please do so as soon as possible.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${uploadLink}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Upload Receipts Now</a>
+                </div>
+              </div>
+              <div style="border-top: 1px solid #e2e8f0; padding: 10px; text-align: center; color: #94a3b8; font-size: 12px;">
+                &copy; 2026 The Chaser. All rights reserved.
+              </div>
+            </div>
+          `
+        });
+        await pool.query(`UPDATE clients SET last_reminder_sent = NOW(), status = 'reminded' WHERE id = $1`, [client.id]);
+        console.log(`Reminder sent to ${client.email}`);
+      } catch (err) {
+        console.error(`Failed to send reminder to ${client.email}:`, err.message);
+      }
     }
-  } catch (err) { console.error('Cron failed:', err); }
+  } catch (err) { console.error('Cron job failed:', err.message); }
 });
 
-// START
+// --- START SERVER ---
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📁 Frontend path: ${frontendPath}`);
+});
