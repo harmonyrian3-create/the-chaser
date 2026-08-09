@@ -54,6 +54,8 @@
         return;
       }
 
+      document.getElementById('loginResult').innerHTML = '<p class="text-blue-500">⏳ Logging in...</p>';
+
       try {
         const res = await fetch(`${API_URL}/api/login`, {
           method: 'POST',
@@ -61,15 +63,24 @@
           body: JSON.stringify({ email, password })
         });
         const data = await res.json();
+
         if (data.success) {
+          // ✅ Save JWT token and user info
+          localStorage.setItem('chaser_token', data.token);
           localStorage.setItem('chaser_firm_id', data.firm.id);
           localStorage.setItem('chaser_firm_name', data.firm.name);
-          window.location.href = '/dashboard.html';
+
+          document.getElementById('loginResult').innerHTML = '<p class="text-green-600">✅ Login successful! Redirecting...</p>';
+
+          setTimeout(() => {
+            window.location.href = '/dashboard.html';
+          }, 1000);
         } else {
           document.getElementById('loginResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
         }
       } catch (err) {
-        document.getElementById('loginResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
+        document.getElementById('loginResult').innerHTML = '<p class="text-red-500">❌ Server error. Please try again.</p>';
+        console.error(err);
       }
     });
   </script>

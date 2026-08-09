@@ -36,7 +36,7 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700">Password</label>
-        <input id="firmPassword" type="password" placeholder="••••••••" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required minlength="6" />
+        <input id="firmPassword" type="password" placeholder="•••••••• (min 6 chars)" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required minlength="6" />
       </div>
       <button type="submit" class="w-full btn-grad text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/30">Start Free Trial</button>
       <div id="registerResult" class="text-sm text-center mt-2"></div>
@@ -50,14 +50,22 @@
 
     document.getElementById('registerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+
       const name = document.getElementById('firmName').value.trim();
       const email = document.getElementById('firmEmail').value.trim();
       const password = document.getElementById('firmPassword').value.trim();
 
       if (!name || !email || !password) {
-        document.getElementById('registerResult').innerHTML = '<p class="text-red-500">All fields required.</p>';
+        document.getElementById('registerResult').innerHTML = '<p class="text-red-500">All fields are required.</p>';
         return;
       }
+
+      if (password.length < 6) {
+        document.getElementById('registerResult').innerHTML = '<p class="text-red-500">Password must be at least 6 characters.</p>';
+        return;
+      }
+
+      document.getElementById('registerResult').innerHTML = '<p class="text-blue-500">⏳ Creating your account...</p>';
 
       try {
         const res = await fetch(`${API_URL}/api/firms`, {
@@ -66,15 +74,27 @@
           body: JSON.stringify({ name, email, password })
         });
         const data = await res.json();
+
         if (data.success) {
-          localStorage.setItem('chaser_firm_id', data.firm.id);
-          localStorage.setItem('chaser_firm_name', data.firm.name);
-          window.location.href = '/dashboard.html';
+          document.getElementById('registerResult').innerHTML = `
+            <p class="text-green-600">✅ Account created successfully!</p>
+            <p class="text-gray-500 text-sm mt-1">Redirecting to login...</p>
+          `;
+
+          // ✅ Clear form
+          document.getElementById('firmName').value = '';
+          document.getElementById('firmEmail').value = '';
+          document.getElementById('firmPassword').value = '';
+
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 2000);
         } else {
           document.getElementById('registerResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
         }
       } catch (err) {
-        document.getElementById('registerResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
+        document.getElementById('registerResult').innerHTML = '<p class="text-red-500">❌ Server error. Please try again.</p>';
+        console.error(err);
       }
     });
   </script>
