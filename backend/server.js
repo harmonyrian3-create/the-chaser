@@ -51,7 +51,7 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ error: 'Invalid or expired token.' });
-    req.user = user; // user = { id: firm_id, email: ... }
+    req.user = user;
     next();
   });
 };
@@ -81,7 +81,6 @@ const initDB = async () => {
         firm_id UUID REFERENCES firms(id) ON DELETE CASCADE,
         name TEXT NOT NULL,
         email TEXT NOT NULL,
-        phone TEXT,
         status TEXT DEFAULT 'awaiting',
         last_reminder_sent TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW()
@@ -102,7 +101,7 @@ const initDB = async () => {
 };
 initDB();
 
-// --- PUBLIC ROUTES (No Auth) ---
+// --- PUBLIC ROUTES ---
 app.get('/api/status', (req, res) => res.send('🚀 API alive'));
 
 // REGISTER
@@ -149,7 +148,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
     const firm = result.rows[0];
     const token = crypto.randomBytes(32).toString('hex');
-    const expiry = new Date(Date.now() + 3600000); // 1 hour
+    const expiry = new Date(Date.now() + 3600000);
 
     await pool.query(
       `UPDATE firms SET reset_token = $1, reset_token_expiry = $2 WHERE id = $3`,
@@ -226,7 +225,7 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
-// --- PROTECTED ROUTES (Require Auth) ---
+// --- PROTECTED ROUTES ---
 
 // Get Firm Profile
 app.get('/api/firms/me', authenticateToken, async (req, res) => {
@@ -267,30 +266,29 @@ app.get('/api/clients', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ADD CLIENT
+// ADD CLIENT (No phone)
 app.post('/api/clients', authenticateToken, async (req, res) => {
   try {
-    const { name, email, phone } = req.body;
+    const { name, email } = req.body;
     const result = await pool.query(
-      `INSERT INTO clients (firm_id, name, email, phone, status) VALUES ($1, $2, $3, $4, 'awaiting') RETURNING *`,
-      [req.user.id, name, email, phone]
+      `INSERT INTO clients (firm_id, name, email, status) VALUES ($1, $2, $3, 'awaiting') RETURNING *`,
+      [req.user.id, name, email]
     );
     res.json({ success: true, client: result.rows[0] });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// UPDATE CLIENT (Edit)
+// UPDATE CLIENT (No phone)
 app.put('/api/clients/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone } = req.body;
-    // Ensure client belongs to this firm
+    const { name, email } = req.body;
     const check = await pool.query(`SELECT * FROM clients WHERE id = $1 AND firm_id = $2`, [id, req.user.id]);
     if (check.rows.length === 0) return res.status(404).json({ error: 'Client not found' });
 
     await pool.query(
-      `UPDATE clients SET name = $1, email = $2, phone = $3 WHERE id = $4`,
-      [name, email, phone, id]
+      `UPDATE clients SET name = $1, email = $2 WHERE id = $3`,
+      [name, email, id]
     );
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -300,7 +298,6 @@ app.put('/api/clients/:id', authenticateToken, async (req, res) => {
 app.delete('/api/clients/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    // Ensure client belongs to this firm
     const check = await pool.query(`SELECT * FROM clients WHERE id = $1 AND firm_id = $2`, [id, req.user.id]);
     if (check.rows.length === 0) return res.status(404).json({ error: 'Client not found' });
 
@@ -326,19 +323,15 @@ app.get('/api/receipts', authenticateToken, async (req, res) => {
 app.get('/api/analytics', authenticateToken, async (req, res) => {
   try {
     const firmId = req.user.id;
-    // Total clients
     const totalRes = await pool.query(`SELECT COUNT(*) FROM clients WHERE firm_id = $1`, [firmId]);
     const totalClients = parseInt(totalRes.rows[0].count);
 
-    // Awaiting
     const awaitingRes = await pool.query(`SELECT COUNT(*) FROM clients WHERE firm_id = $1 AND status = 'awaiting'`, [firmId]);
     const awaiting = parseInt(awaitingRes.rows[0].count);
 
-    // Uploaded
     const uploadedRes = await pool.query(`SELECT COUNT(*) FROM clients WHERE firm_id = $1 AND status = 'uploaded'`, [firmId]);
     const uploaded = parseInt(uploadedRes.rows[0].count);
 
-    // Avg response time (days from client creation to first receipt upload)
     const avgRes = await pool.query(`
       SELECT AVG(EXTRACT(EPOCH FROM (r.upload_date - c.created_at)) / 86400) as avg_days
       FROM clients c
@@ -347,7 +340,6 @@ app.get('/api/analytics', authenticateToken, async (req, res) => {
     `, [firmId]);
     const avgResponseDays = avgRes.rows[0].avg_days ? parseFloat(avgRes.rows[0].avg_days).toFixed(1) : null;
 
-    // Total receipts count
     const receiptsRes = await pool.query(`
       SELECT COUNT(*) FROM receipts r JOIN clients c ON r.client_id = c.id WHERE c.firm_id = $1
     `, [firmId]);
@@ -366,7 +358,7 @@ app.get('/api/analytics', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// UPLOAD RECEIPT (Public for clients)
+// UPLOAD RECEIPT
 app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
   try {
     const { client_id } = req.body;
@@ -390,11 +382,10 @@ app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
   }
 });
 
-// SEND REMINDER (Protected)
+// SEND REMINDER
 app.post('/api/send-reminder', authenticateToken, async (req, res) => {
   try {
     const { client_id } = req.body;
-    // Ensure client belongs to this firm
     const check = await pool.query(`SELECT * FROM clients WHERE id = $1 AND firm_id = $2`, [client_id, req.user.id]);
     if (check.rows.length === 0) return res.status(404).json({ error: 'Client not found' });
 
@@ -419,7 +410,7 @@ app.post('/api/send-reminder', authenticateToken, async (req, res) => {
             <p style="color: #94a3b8; font-size: 12px;">If you have already uploaded, please ignore this message.</p>
           </div>
           <div style="border-top: 1px solid #e2e8f0; padding: 10px; text-align: center; color: #94a3b8; font-size: 12px;">
-            &copy; 2026 The Chaser. All rights reserved. <br> Made with ❤️ from Kenya.
+            &copy; 2026 The Chaser. All rights reserved.
           </div>
         </div>
       `
@@ -433,7 +424,7 @@ app.post('/api/send-reminder', authenticateToken, async (req, res) => {
   }
 });
 
-// --- CRON JOB (daily at 9 AM) ---
+// --- CRON JOB ---
 cron.schedule('0 9 * * *', async () => {
   console.log('⏰ Running daily nagging cron job...');
   try {
@@ -445,7 +436,6 @@ cron.schedule('0 9 * * *', async () => {
     `);
     console.log(`Found ${result.rows.length} clients to remind.`);
     for (let client of result.rows) {
-      // Send reminder email
       const uploadLink = `${process.env.BASE_URL}/upload.html?client=${client.id}`;
       try {
         await resend.emails.send({
@@ -479,7 +469,7 @@ cron.schedule('0 9 * * *', async () => {
   } catch (err) { console.error('Cron job failed:', err.message); }
 });
 
-// --- START SERVER ---
+// --- START ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

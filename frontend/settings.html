@@ -111,7 +111,6 @@
       <div class="bg-card rounded-2xl shadow-lg p-6 border border-custom mb-6">
         <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">🎨 Theme Settings</h3>
 
-        <!-- Dark/Light Toggle -->
         <div class="flex items-center justify-between mb-6">
           <span class="font-medium" style="color: var(--text-color);">Mode</span>
           <div class="flex items-center gap-3">
@@ -124,25 +123,18 @@
           </div>
         </div>
 
-        <!-- Theme Select -->
         <div class="mb-6">
           <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">Theme</label>
-          <select id="themeSelect" class="input-field" onchange="changeTheme()">
-          </select>
+          <select id="themeSelect" class="input-field" onchange="changeTheme()"></select>
         </div>
 
-        <!-- Theme Preview Grid -->
-        <div id="themeGrid" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-        </div>
+        <div id="themeGrid" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6"></div>
 
-        <!-- Accent Color -->
         <div class="mb-6">
           <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">Accent Color</label>
-          <select id="accentSelect" class="input-field" onchange="changeAccent()">
-          </select>
+          <select id="accentSelect" class="input-field" onchange="changeAccent()"></select>
         </div>
 
-        <!-- Custom Background -->
         <div class="border-t pt-4" style="border-color: var(--border-color);">
           <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">🖼️ Custom Background</label>
           <div class="flex flex-wrap gap-4 items-center">
@@ -240,7 +232,6 @@
         opt.textContent = t.name;
         select.appendChild(opt);
       });
-      // Update grid
       const grid = document.getElementById('themeGrid');
       grid.innerHTML = '';
       themes.forEach((t, i) => {
@@ -260,40 +251,17 @@
     }
 
     function toggleMode() {
-  const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
-  const saved = getThemeSettings();
-  const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
-  const themeId = saved.themeId && themes.find(t => t.id === saved.themeId) ? saved.themeId : themes[0].id;
-  const accentId = saved.accentId || 'blue';
-  applyTheme(themeId, mode, accentId, saved.customBg || null);
-  populateThemeSelects();
-  document.querySelectorAll('.theme-card').forEach((c, i) => {
-    c.style.borderColor = i === 0 ? 'var(--accent-color)' : 'transparent';
-  });
-}
-
-function changeTheme() {
-  const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
-  const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
-  const idx = document.getElementById('themeSelect').selectedIndex;
-  const theme = themes[idx] || themes[0];
-  const saved = getThemeSettings();
-  applyTheme(theme.id, mode, saved.accentId || 'blue', saved.customBg || null);
-  document.querySelectorAll('.theme-card').forEach((c, i) => {
-    c.style.borderColor = i === idx ? 'var(--accent-color)' : 'transparent';
-  });
-}
-
-function changeAccent() {
-  const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
-  const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
-  const themeIdx = document.getElementById('themeSelect').selectedIndex;
-  const theme = themes[themeIdx] || themes[0];
-  const accentIdx = document.getElementById('accentSelect').selectedIndex;
-  const accent = ACCENTS[accentIdx] || ACCENTS[0];
-  const saved = getThemeSettings();
-  applyTheme(theme.id, mode, accent.id, saved.customBg || null);
-}
+      const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
+      const saved = getThemeSettings();
+      const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
+      const themeId = saved.themeId && themes.find(t => t.id === saved.themeId) ? saved.themeId : themes[0].id;
+      const accentId = saved.accentId || 'blue';
+      applyTheme(themeId, mode, accentId, saved.customBg || null);
+      populateThemeSelects();
+      document.querySelectorAll('.theme-card').forEach((c, i) => {
+        c.style.borderColor = i === 0 ? 'var(--accent-color)' : 'transparent';
+      });
+    }
 
     function changeTheme() {
       const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
@@ -382,7 +350,6 @@ function changeAccent() {
       const saved = getThemeSettings();
       document.getElementById('themeModeToggle').checked = saved.mode === 'dark';
       
-      // Populate accent select
       const accentSelect = document.getElementById('accentSelect');
       accentSelect.innerHTML = '';
       ACCENTS.forEach(a => {

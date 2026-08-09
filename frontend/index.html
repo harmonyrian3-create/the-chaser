@@ -28,7 +28,7 @@
         <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">Stop chasing <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">receipts.</span></h1>
         <p class="text-gray-300 text-lg mt-4">Let AI chase your clients for receipts, OCR them, and categorize expenses automatically. Save 10+ hours a week.</p>
         <div class="flex flex-wrap gap-4 mt-8">
-          <a href="/register.html" class="btn-grad text-white px-8 py-4 rounded-xl font-semibold shadow-2xl shadow-blue-500/30">Get Started Free</a>
+          <a href="#" onclick="redirectToTrial(); return false;" class="btn-grad text-white px-8 py-4 rounded-xl font-semibold shadow-2xl shadow-blue-500/30">Get Started Free</a>
           <a href="#features" class="border border-white/30 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/10 transition">Learn More</a>
         </div>
         <p class="text-gray-400 text-sm mt-4">✨ No credit card • 14-day free trial • Cancel anytime</p>
@@ -51,7 +51,7 @@
     <div class="max-w-6xl mx-auto text-center">
       <h2 class="text-4xl font-bold text-gray-800">Why accounting firms <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">love</span> The Chaser</h2>
       <div class="grid md:grid-cols-3 gap-8 mt-12">
-        <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">🤖</div><h3 class="text-xl font-bold">AI-Powered Chasing</h3><p class="text-gray-500 mt-2">Auto-emails & SMS clients until they upload receipts.</p></div>
+        <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">🤖</div><h3 class="text-xl font-bold">AI-Powered Chasing</h3><p class="text-gray-500 mt-2">Auto-emails clients until they upload receipts.</p></div>
         <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">📸</div><h3 class="text-xl font-bold">Smart OCR + Categorization</h3><p class="text-gray-500 mt-2">Reads receipt text and sorts into Meals, Travel, Supplies, Other.</p></div>
         <div class="feature-card bg-gray-50 p-8 rounded-2xl border border-gray-100"><div class="text-4xl mb-4">⏳</div><h3 class="text-xl font-bold">Save 10+ Hours/Week</h3><p class="text-gray-500 mt-2">Focus on advisory work, not chasing receipts.</p></div>
       </div>
@@ -61,14 +61,17 @@
   <!-- FOOTER -->
   <footer class="bg-gray-900 text-white py-8 px-6 text-center">
     <p>© 2026 The Chaser. All rights reserved.</p>
+    <p class="text-gray-400 text-sm mt-1">Made with ❤️ from Kenya</p>
   </footer>
 
   <script>
-    // Redirect logged-in users to dashboard if they hit home
-    const firmId = localStorage.getItem('chaser_firm_id');
-    if (firmId) {
-      // Optional: redirect to dashboard if they're logged in
-      // window.location.href = '/dashboard.html';
+    function redirectToTrial() {
+      const token = localStorage.getItem('chaser_token');
+      if (token) {
+        window.location.href = '/dashboard.html';
+      } else {
+        window.location.href = '/register.html';
+      }
     }
   </script>
 </body>

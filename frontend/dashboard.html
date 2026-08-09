@@ -127,13 +127,12 @@
         </div>
       </div>
 
-      <!-- Add Client -->
+      <!-- Add Client (No phone) -->
       <div class="bg-card rounded-2xl shadow-lg p-6 mb-6 border border-custom">
         <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">➕ Add Client</h3>
-        <div class="grid md:grid-cols-3 gap-4">
+        <div class="grid md:grid-cols-2 gap-4">
           <input id="clientName" placeholder="Full Name" class="input-field" />
           <input id="clientEmail" placeholder="Email" class="input-field" />
-          <input id="clientPhone" placeholder="Phone" class="input-field" />
         </div>
         <button onclick="addClient()" class="mt-4 btn-grad text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30">Add Client</button>
         <div id="clientResult" class="mt-3 text-sm"></div>
@@ -167,7 +166,6 @@
       <input id="editId" type="hidden" />
       <input id="editName" placeholder="Name" class="input-field mb-3" />
       <input id="editEmail" placeholder="Email" class="input-field mb-3" />
-      <input id="editPhone" placeholder="Phone" class="input-field mb-4" />
       <div class="flex gap-3">
         <button onclick="saveEdit()" class="btn-grad text-white px-6 py-2 rounded-xl font-semibold">Save</button>
         <button onclick="closeEdit()" class="px-6 py-2 rounded-xl font-semibold border" style="color: var(--text-color); border-color: var(--border-color);">Cancel</button>
@@ -251,7 +249,7 @@
             </div>
             <div class="flex items-center gap-3">
               <span class="text-sm ${statusClass} px-3 py-1 rounded-full">${icon} ${c.status}</span>
-              <button onclick="openEdit('${c.id}','${c.name}','${c.email}','${c.phone||''}')" class="text-accent hover:opacity-70"><i class="fas fa-edit"></i></button>
+              <button onclick="openEdit('${c.id}','${c.name}','${c.email}')" class="text-accent hover:opacity-70"><i class="fas fa-edit"></i></button>
               <button onclick="deleteClient('${c.id}')" class="text-red-500 hover:opacity-70"><i class="fas fa-trash"></i></button>
             </div>
           </div>
@@ -263,7 +261,6 @@
     async function addClient() {
       const name = document.getElementById('clientName').value.trim();
       const email = document.getElementById('clientEmail').value.trim();
-      const phone = document.getElementById('clientPhone').value.trim();
       if (!name || !email) {
         document.getElementById('clientResult').innerHTML = `<p class="text-red-500">Name and email required.</p>`;
         return;
@@ -272,14 +269,13 @@
         const res = await fetch(`${API_URL}/api/clients`, {
           method: 'POST',
           headers: getHeaders(),
-          body: JSON.stringify({ name, email, phone })
+          body: JSON.stringify({ name, email })
         });
         const data = await res.json();
         if (data.success) {
           document.getElementById('clientResult').innerHTML = `<p class="text-green-500">✅ ${name} added!</p>`;
           document.getElementById('clientName').value = '';
           document.getElementById('clientEmail').value = '';
-          document.getElementById('clientPhone').value = '';
           loadClients();
           loadAnalytics();
         } else {
@@ -290,11 +286,10 @@
       }
     }
 
-    function openEdit(id, name, email, phone) {
+    function openEdit(id, name, email) {
       document.getElementById('editId').value = id;
       document.getElementById('editName').value = name;
       document.getElementById('editEmail').value = email;
-      document.getElementById('editPhone').value = phone;
       document.getElementById('editModal').classList.remove('hidden');
     }
 
@@ -306,12 +301,11 @@
       const id = document.getElementById('editId').value;
       const name = document.getElementById('editName').value.trim();
       const email = document.getElementById('editEmail').value.trim();
-      const phone = document.getElementById('editPhone').value.trim();
       try {
         const res = await fetch(`${API_URL}/api/clients/${id}`, {
           method: 'PUT',
           headers: getHeaders(),
-          body: JSON.stringify({ name, email, phone })
+          body: JSON.stringify({ name, email })
         });
         const data = await res.json();
         if (data.success) {
