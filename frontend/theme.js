@@ -43,7 +43,6 @@ function applyThemeSync(themeId, mode, accentId, customBg) {
   
   const accent = ACCENTS.find(a => a.id === accentId) || ACCENTS[0];
   
-  // Apply directly to document.documentElement (root)
   const root = document.documentElement;
   root.style.setProperty('--bg-color', theme.bg);
   root.style.setProperty('--text-color', theme.text);
@@ -58,7 +57,6 @@ function applyThemeSync(themeId, mode, accentId, customBg) {
     root.style.setProperty('--bg-image', 'none');
   }
   
-  // Also apply to body
   document.body.style.backgroundColor = theme.bg;
   document.body.style.color = theme.text;
   document.body.style.backgroundImage = customBg ? `url(${customBg})` : 'none';
@@ -67,34 +65,45 @@ function applyThemeSync(themeId, mode, accentId, customBg) {
   document.body.style.backgroundAttachment = 'fixed';
 }
 
-// --- Load theme from localStorage (sync, no flash) ---
-function loadThemeSync() {
+// --- Get saved theme or default ---
+function getSavedTheme() {
   try {
-    const saved = JSON.parse(localStorage.getItem('chaser_theme'));
+    const saved = localStorage.getItem('chaser_theme');
     if (saved) {
-      applyThemeSync(saved.themeId, saved.mode, saved.accentId, saved.customBg);
-      return saved;
-    } else {
-      // Default: Dark Default + Blue accent
-      applyThemeSync('dark-default', 'dark', 'blue', null);
-      return { themeId: 'dark-default', mode: 'dark', accentId: 'blue' };
+      const parsed = JSON.parse(saved);
+      // Validate that the theme exists
+      const themes = parsed.mode === 'dark' ? THEMES.dark : THEMES.light;
+      const themeExists = themes.some(t => t.id === parsed.themeId);
+      const accentExists = ACCENTS.some(a => a.id === parsed.accentId);
+      if (themeExists && accentExists) {
+        return parsed;
+      }
     }
-  } catch (e) {
+  } catch (e) {}
+  return null;
+}
+
+// --- Load theme (runs once on page load) ---
+function loadThemeSync() {
+  const saved = getSavedTheme();
+  if (saved) {
+    applyThemeSync(saved.themeId, saved.mode, saved.accentId, saved.customBg);
+  } else {
+    // Default: Dark Default + Blue accent
     applyThemeSync('dark-default', 'dark', 'blue', null);
-    return { themeId: 'dark-default', mode: 'dark', accentId: 'blue' };
+    localStorage.setItem('chaser_theme', JSON.stringify({ themeId: 'dark-default', mode: 'dark', accentId: 'blue' }));
   }
 }
 
-// --- Apply theme (async version for settings page) ---
+// --- Apply theme and save (for settings page) ---
 function applyTheme(themeId, mode, accentId, customBg) {
   applyThemeSync(themeId, mode, accentId, customBg);
-  // Save to localStorage
   localStorage.setItem('chaser_theme', JSON.stringify({ themeId, mode, accentId, customBg }));
 }
 
-// --- Load theme (async version for settings page) ---
+// --- Load theme (alias for settings page) ---
 function loadTheme() {
-  return loadThemeSync();
+  loadThemeSync();
 }
 
 // --- Custom background upload ---
@@ -103,33 +112,33 @@ function uploadCustomBg(file) {
   const reader = new FileReader();
   reader.onload = function(e) {
     const dataUrl = e.target.result;
-    const saved = JSON.parse(localStorage.getItem('chaser_theme')) || { themeId: 'dark-default', mode: 'dark', accentId: 'blue' };
+    const saved = getSavedTheme() || { themeId: 'dark-default', mode: 'dark', accentId: 'blue' };
     saved.customBg = dataUrl;
     localStorage.setItem('chaser_theme', JSON.stringify(saved));
     applyThemeSync(saved.themeId, saved.mode, saved.accentId, dataUrl);
     const preview = document.getElementById('customBgPreview');
     if (preview) preview.src = dataUrl;
-    document.getElementById('bgUploadStatus').innerHTML = '<span class="text-green-500">✅ Background uploaded!</span>';
+    const status = document.getElementById('bgUploadStatus');
+    if (status) status.innerHTML = '<span class="text-green-500">✅ Background uploaded!</span>';
   };
   reader.readAsDataURL(file);
 }
 
 // --- Remove custom background ---
 function removeCustomBg() {
-  const saved = JSON.parse(localStorage.getItem('chaser_theme')) || { themeId: 'dark-default', mode: 'dark', accentId: 'blue' };
+  const saved = getSavedTheme() || { themeId: 'dark-default', mode: 'dark', accentId: 'blue' };
   delete saved.customBg;
   localStorage.setItem('chaser_theme', JSON.stringify(saved));
   applyThemeSync(saved.themeId, saved.mode, saved.accentId, null);
   const preview = document.getElementById('customBgPreview');
   if (preview) preview.src = '';
-  document.getElementById('bgUploadStatus').innerHTML = '<span class="text-gray-500">Background removed.</span>';
+  const status = document.getElementById('bgUploadStatus');
+  if (status) status.innerHTML = '<span class="text-gray-500">Background removed.</span>';
 }
 
 // --- Get current theme settings ---
 function getThemeSettings() {
-  try {
-    return JSON.parse(localStorage.getItem('chaser_theme')) || { themeId: 'dark-default', mode: 'dark', accentId: 'blue' };
-  } catch { return { themeId: 'dark-default', mode: 'dark', accentId: 'blue' }; }
+  return getSavedTheme() || { themeId: 'dark-default', mode: 'dark', accentId: 'blue' };
 }
 
 // --- Load theme on page load (runs instantly) ---

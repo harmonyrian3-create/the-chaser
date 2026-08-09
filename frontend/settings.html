@@ -260,17 +260,40 @@
     }
 
     function toggleMode() {
-      const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
-      populateThemeSelects();
-      const saved = getThemeSettings();
-      const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
-      const themeId = saved.themeId && themes.find(t => t.id === saved.themeId) ? saved.themeId : themes[0].id;
-      const accentId = saved.accentId || 'blue';
-      applyTheme(themeId, mode, accentId, saved.customBg || null);
-      document.querySelectorAll('.theme-card').forEach((c, i) => {
-        c.style.borderColor = i === 0 ? 'var(--accent-color)' : 'transparent';
-      });
-    }
+  const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
+  const saved = getThemeSettings();
+  const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
+  const themeId = saved.themeId && themes.find(t => t.id === saved.themeId) ? saved.themeId : themes[0].id;
+  const accentId = saved.accentId || 'blue';
+  applyTheme(themeId, mode, accentId, saved.customBg || null);
+  populateThemeSelects();
+  document.querySelectorAll('.theme-card').forEach((c, i) => {
+    c.style.borderColor = i === 0 ? 'var(--accent-color)' : 'transparent';
+  });
+}
+
+function changeTheme() {
+  const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
+  const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
+  const idx = document.getElementById('themeSelect').selectedIndex;
+  const theme = themes[idx] || themes[0];
+  const saved = getThemeSettings();
+  applyTheme(theme.id, mode, saved.accentId || 'blue', saved.customBg || null);
+  document.querySelectorAll('.theme-card').forEach((c, i) => {
+    c.style.borderColor = i === idx ? 'var(--accent-color)' : 'transparent';
+  });
+}
+
+function changeAccent() {
+  const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
+  const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
+  const themeIdx = document.getElementById('themeSelect').selectedIndex;
+  const theme = themes[themeIdx] || themes[0];
+  const accentIdx = document.getElementById('accentSelect').selectedIndex;
+  const accent = ACCENTS[accentIdx] || ACCENTS[0];
+  const saved = getThemeSettings();
+  applyTheme(theme.id, mode, accent.id, saved.customBg || null);
+}
 
     function changeTheme() {
       const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
