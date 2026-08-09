@@ -18,148 +18,364 @@
     .sidebar-collapsed .nav-text { display: none; }
     .sidebar-collapsed .brand-text { display: none; }
     .sidebar-collapsed .nav-link { justify-content: center; padding: 12px; }
-    .sidebar-collapsed .nav-link i { font-size: 1.25rem; }
     .sidebar-collapsed .footer-text { display: none; }
+    .theme-card { transition: all 0.3s; }
+    .theme-card:hover { transform: translateY(-4px); }
+    .theme-preview { width: 100%; height: 60px; border-radius: 8px; border: 2px solid transparent; }
+    .theme-preview.selected { border-color: var(--accent-color, #3b82f6); box-shadow: 0 0 0 2px var(--accent-color, #3b82f6); }
+    
+    /* Theme variables */
+    :root {
+      --bg-color: #0f172a;
+      --text-color: #f1f5f9;
+      --card-color: #1e293b;
+      --border-color: #334155;
+      --accent-color: #3b82f6;
+      --bg-image: none;
+    }
+    
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      background-image: var(--bg-image);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    
+    .bg-card { background-color: var(--card-color); border-color: var(--border-color); }
+    .bg-sidebar { background: var(--card-color); backdrop-filter: blur(16px); border-right: 1px solid var(--border-color); }
+    .text-accent { color: var(--accent-color); }
+    .border-accent { border-color: var(--accent-color); }
+    .bg-accent { background-color: var(--accent-color); }
+    .ring-accent { ring-color: var(--accent-color); }
   </style>
 </head>
-<body class="bg-gray-50 flex min-h-screen">
+<body class="flex min-h-screen">
 
   <!-- SIDEBAR -->
-  <aside id="sidebar" class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-4 flex flex-col transition-all duration-300">
+  <aside id="sidebar" class="bg-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-4 flex flex-col transition-all duration-300">
     <div class="flex items-center justify-between mb-6">
-      <span class="brand-text text-2xl font-extrabold text-blue-600">📧 The Chaser</span>
-      <button onclick="toggleSidebar()" class="text-gray-500 hover:text-blue-600 transition">
+      <span class="brand-text text-2xl font-extrabold text-accent">📧 The Chaser</span>
+      <button onclick="toggleSidebar()" class="text-gray-500 hover:text-accent transition">
         <i class="fas fa-bars text-xl"></i>
       </button>
     </div>
-   <nav class="flex-1 space-y-1.5">
-  <a href="/dashboard.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i><span class="nav-text">Dashboard</span></a>
-  <a href="/receipts.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i><span class="nav-text">Receipts</span></a>
-  <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i><span class="nav-text">Pricing</span></a>
-  <a href="/settings.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-blue-500"></i><span class="nav-text">Settings</span></a>
-  <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i><span class="nav-text">Logout</span></button>
-</nav>
+    <nav class="flex-1 space-y-1.5">
+      <a href="/dashboard.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-accent"></i><span class="nav-text">Dashboard</span></a>
+      <a href="/receipts.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-accent"></i><span class="nav-text">Receipts</span></a>
+      <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-accent"></i><span class="nav-text">Pricing</span></a>
+      <a href="/settings.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-accent"></i><span class="nav-text">Settings</span></a>
+      <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i><span class="nav-text">Logout</span></button>
+    </nav>
     <div class="footer-text text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
   </aside>
 
   <!-- MAIN -->
   <main id="mainContent" class="flex-1 ml-64 p-8 transition-all duration-300">
-    <div class="max-w-3xl mx-auto">
-      <h1 class="text-3xl font-extrabold text-gray-800 mb-8">⚙️ Settings</h1>
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-extrabold mb-8" style="color: var(--text-color);">⚙️ Settings</h1>
 
-      <!-- Firm Information -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-6">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">Firm Information</h3>
+      <!-- THEME SETTINGS -->
+      <div class="bg-card rounded-2xl shadow-lg p-6 border mb-6">
+        <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">🎨 Theme Settings</h3>
+
+        <!-- Dark/Light Toggle -->
+        <div class="flex items-center justify-between mb-6">
+          <span class="font-medium" style="color: var(--text-color);">Mode</span>
+          <div class="flex items-center gap-3">
+            <span class="text-sm" style="color: var(--text-color);">☀️ Light</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="themeModeToggle" class="sr-only peer" onchange="toggleMode()">
+              <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-accent peer-focus:ring-2 peer-focus:ring-accent transition-all"></div>
+            </label>
+            <span class="text-sm" style="color: var(--text-color);">🌙 Dark</span>
+          </div>
+        </div>
+
+        <!-- Theme Select -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">Theme</label>
+          <select id="themeSelect" class="w-full px-4 py-3 rounded-xl border bg-card" style="color: var(--text-color); border-color: var(--border-color);" onchange="changeTheme()">
+          </select>
+        </div>
+
+        <!-- Theme Preview Grid -->
+        <div id="themeGrid" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+        </div>
+
+        <!-- Accent Color -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">Accent Color</label>
+          <select id="accentSelect" class="w-full px-4 py-3 rounded-xl border bg-card" style="color: var(--text-color); border-color: var(--border-color);" onchange="changeAccent()">
+          </select>
+        </div>
+
+        <!-- Custom Background -->
+        <div class="border-t pt-4" style="border-color: var(--border-color);">
+          <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">🖼️ Custom Background</label>
+          <div class="flex flex-wrap gap-4 items-center">
+            <input type="file" id="bgUpload" accept="image/*" class="hidden" onchange="handleBgUpload(this)" />
+            <button onclick="document.getElementById('bgUpload').click()" class="btn-grad text-white px-6 py-2 rounded-xl font-semibold text-sm">
+              <i class="fas fa-upload mr-2"></i> Upload Image
+            </button>
+            <button onclick="removeCustomBg()" class="px-4 py-2 rounded-xl text-sm border hover:bg-red-50 transition" style="color: var(--text-color); border-color: var(--border-color);">
+              <i class="fas fa-times mr-2"></i> Remove
+            </button>
+            <div id="bgUploadStatus" class="text-sm"></div>
+          </div>
+          <div class="mt-3">
+            <img id="customBgPreview" class="max-w-full max-h-32 rounded-xl border" style="border-color: var(--border-color); display: none;" alt="Background Preview" />
+          </div>
+          <p class="text-xs mt-2" style="color: var(--text-color); opacity: 0.6;">Upload a JPG, PNG, or GIF to use as your background.</p>
+        </div>
+      </div>
+
+      <!-- Firm Settings -->
+      <div class="bg-card rounded-2xl shadow-lg p-6 border mb-6">
+        <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">🏢 Firm Information</h3>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700">Firm Name</label>
-            <input id="firmNameInput" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition" />
+            <label class="block text-sm font-medium mb-1" style="color: var(--text-color);">Firm Name</label>
+            <input id="firmNameInput" class="w-full px-4 py-3 rounded-xl border bg-card" style="color: var(--text-color); border-color: var(--border-color);" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input id="firmEmailInput" type="email" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition" />
+            <label class="block text-sm font-medium mb-1" style="color: var(--text-color);">Email</label>
+            <input id="firmEmailInput" type="email" class="w-full px-4 py-3 rounded-xl border bg-card" style="color: var(--text-color); border-color: var(--border-color);" />
           </div>
           <button onclick="updateProfile()" class="btn-grad text-white px-6 py-2 rounded-xl font-semibold">Save Changes</button>
           <div id="profileResult" class="text-sm mt-2"></div>
         </div>
       </div>
 
-      <!-- Change Password -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-6">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">🔑 Change Password</h3>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">New Password</label>
-            <input id="newPassword" type="password" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 transition" minlength="6" />
-          </div>
-          <button onclick="updatePassword()" class="btn-grad text-white px-6 py-2 rounded-xl font-semibold">Update Password</button>
-          <div id="passwordResult" class="text-sm mt-2"></div>
+      <!-- Password -->
+      <div class="bg-card rounded-2xl shadow-lg p-6 border mb-6">
+        <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">🔑 Change Password</h3>
+        <div>
+          <label class="block text-sm font-medium mb-1" style="color: var(--text-color);">New Password</label>
+          <input id="newPassword" type="password" class="w-full px-4 py-3 rounded-xl border bg-card" style="color: var(--text-color); border-color: var(--border-color);" minlength="6" />
         </div>
+        <button onclick="updatePassword()" class="mt-4 btn-grad text-white px-6 py-2 rounded-xl font-semibold">Update Password</button>
+        <div id="passwordResult" class="text-sm mt-2"></div>
       </div>
 
       <!-- Subscription -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">💳 Subscription</h3>
-        <p class="text-gray-600">You are on the <span class="font-semibold text-blue-600" id="subscriptionStatus">Free Trial</span> plan.</p>
-        <a href="/pricing.html" class="inline-block mt-4 text-blue-600 font-semibold hover:underline">Upgrade Plan →</a>
+      <div class="bg-card rounded-2xl shadow-lg p-6 border">
+        <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">💳 Subscription</h3>
+        <p style="color: var(--text-color);">You are on the <span class="font-semibold text-accent" id="subscriptionStatus">Free Trial</span> plan.</p>
+        <a href="/pricing.html" class="inline-block mt-4 text-accent font-semibold hover:underline">Upgrade Plan →</a>
       </div>
     </div>
   </main>
 
+  <script src="/theme.js"></script>
   <script>
     const API_URL = window.location.origin;
-    const firmId = localStorage.getItem('chaser_firm_id');
+    const token = localStorage.getItem('chaser_token');
     const firmName = localStorage.getItem('chaser_firm_name');
 
-    if (!firmId) window.location.href = '/login.html';
+    if (!token) window.location.href = '/login.html';
     document.getElementById('firmDisplay').innerText = firmName || 'My Firm';
-    document.getElementById('firmNameInput').value = firmName || '';
-    document.getElementById('firmEmailInput').value = '';
+
+    function getHeaders() {
+      return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    }
 
     function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
+      document.getElementById('sidebar').classList.toggle('sidebar-collapsed');
       const main = document.getElementById('mainContent');
-      sidebar.classList.toggle('sidebar-collapsed');
-      if (sidebar.classList.contains('sidebar-collapsed')) {
-        main.classList.remove('ml-64');
-        main.classList.add('ml-[72px]');
+      if (document.getElementById('sidebar').classList.contains('sidebar-collapsed')) {
+        main.classList.remove('ml-64'); main.classList.add('ml-[72px]');
       } else {
-        main.classList.remove('ml-[72px]');
-        main.classList.add('ml-64');
+        main.classList.remove('ml-[72px]'); main.classList.add('ml-64');
       }
     }
 
+    function logoutUser() {
+      localStorage.removeItem('chaser_token');
+      localStorage.removeItem('chaser_firm_id');
+      localStorage.removeItem('chaser_firm_name');
+      window.location.href = '/';
+    }
+
+    // --- Theme Functions ---
+    function populateThemeSelects() {
+      const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
+      const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
+      const select = document.getElementById('themeSelect');
+      select.innerHTML = '';
+      themes.forEach((t, i) => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.name;
+        select.appendChild(opt);
+      });
+      // Update grid
+      const grid = document.getElementById('themeGrid');
+      grid.innerHTML = '';
+      themes.forEach((t, i) => {
+        const div = document.createElement('div');
+        div.className = `theme-card cursor-pointer rounded-lg p-1 border-2 ${i === 0 ? 'selected' : ''}`;
+        div.style.borderColor = i === 0 ? 'var(--accent-color)' : 'transparent';
+        div.innerHTML = `<div class="theme-preview" style="background: ${t.bg};"></div>`;
+        div.title = t.name;
+        div.onclick = () => {
+          select.selectedIndex = i;
+          changeTheme();
+          document.querySelectorAll('.theme-card').forEach(c => c.style.borderColor = 'transparent');
+          div.style.borderColor = 'var(--accent-color)';
+        };
+        grid.appendChild(div);
+      });
+    }
+
+    function toggleMode() {
+      const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
+      populateThemeSelects();
+      const saved = getThemeSettings();
+      const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
+      const themeId = saved.themeId && themes.find(t => t.id === saved.themeId) ? saved.themeId : themes[0].id;
+      const accentId = saved.accentId || 'blue';
+      applyTheme(themeId, mode, accentId, saved.customBg || null);
+      // Reapply border colors
+      document.querySelectorAll('.theme-card').forEach((c, i) => {
+        c.style.borderColor = i === 0 ? 'var(--accent-color)' : 'transparent';
+      });
+    }
+
+    function changeTheme() {
+      const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
+      const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
+      const idx = document.getElementById('themeSelect').selectedIndex;
+      const theme = themes[idx] || themes[0];
+      const saved = getThemeSettings();
+      applyTheme(theme.id, mode, saved.accentId || 'blue', saved.customBg || null);
+      document.querySelectorAll('.theme-card').forEach((c, i) => {
+        c.style.borderColor = i === idx ? 'var(--accent-color)' : 'transparent';
+      });
+    }
+
+    function changeAccent() {
+      const mode = document.getElementById('themeModeToggle').checked ? 'dark' : 'light';
+      const themes = mode === 'dark' ? THEMES.dark : THEMES.light;
+      const themeIdx = document.getElementById('themeSelect').selectedIndex;
+      const theme = themes[themeIdx] || themes[0];
+      const accentIdx = document.getElementById('accentSelect').selectedIndex;
+      const accent = ACCENTS[accentIdx] || ACCENTS[0];
+      const saved = getThemeSettings();
+      applyTheme(theme.id, mode, accent.id, saved.customBg || null);
+    }
+
+    function handleBgUpload(input) {
+      if (input.files && input.files[0]) {
+        uploadCustomBg(input.files[0]);
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('customBgPreview').src = e.target.result;
+          document.getElementById('customBgPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    // --- Profile Functions ---
     async function updateProfile() {
       const name = document.getElementById('firmNameInput').value.trim();
       const email = document.getElementById('firmEmailInput').value.trim();
       try {
-        const res = await fetch(`${API_URL}/api/firms/${firmId}`, {
+        const res = await fetch(`${API_URL}/api/firms/me`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(),
           body: JSON.stringify({ name, email })
         });
         const data = await res.json();
         if (data.success) {
           localStorage.setItem('chaser_firm_name', name);
-          document.getElementById('profileResult').innerHTML = '<p class="text-green-600">✅ Profile updated!</p>';
           document.getElementById('firmDisplay').innerText = name;
+          document.getElementById('profileResult').innerHTML = '<span class="text-green-500">✅ Profile updated!</span>';
         } else {
-          document.getElementById('profileResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
+          document.getElementById('profileResult').innerHTML = `<span class="text-red-500">❌ ${data.error}</span>`;
         }
-      } catch (err) {
-        document.getElementById('profileResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
+      } catch (e) {
+        document.getElementById('profileResult').innerHTML = '<span class="text-red-500">❌ Server error.</span>';
       }
     }
 
     async function updatePassword() {
       const password = document.getElementById('newPassword').value.trim();
       if (password.length < 6) {
-        document.getElementById('passwordResult').innerHTML = '<p class="text-red-500">Password must be at least 6 characters.</p>';
+        document.getElementById('passwordResult').innerHTML = '<span class="text-red-500">Password must be at least 6 characters.</span>';
         return;
       }
       try {
-        const res = await fetch(`${API_URL}/api/firms/${firmId}/password`, {
+        const res = await fetch(`${API_URL}/api/firms/me/password`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(),
           body: JSON.stringify({ password })
         });
         const data = await res.json();
         if (data.success) {
-          document.getElementById('passwordResult').innerHTML = '<p class="text-green-600">✅ Password updated!</p>';
+          document.getElementById('passwordResult').innerHTML = '<span class="text-green-500">✅ Password updated!</span>';
           document.getElementById('newPassword').value = '';
         } else {
-          document.getElementById('passwordResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
+          document.getElementById('passwordResult').innerHTML = `<span class="text-red-500">❌ ${data.error}</span>`;
         }
-      } catch (err) {
-        document.getElementById('passwordResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
+      } catch (e) {
+        document.getElementById('passwordResult').innerHTML = '<span class="text-red-500">❌ Server error.</span>';
       }
     }
 
-    function logoutUser() {
-      localStorage.removeItem('chaser_firm_id');
-      localStorage.removeItem('chaser_firm_name');
-      window.location.href = '/';
+    // --- Init ---
+    function initThemeUI() {
+      const saved = getThemeSettings();
+      document.getElementById('themeModeToggle').checked = saved.mode === 'dark';
+      
+      // Populate accent select
+      const accentSelect = document.getElementById('accentSelect');
+      accentSelect.innerHTML = '';
+      ACCENTS.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        opt.textContent = a.name + ' ●';
+        opt.style.color = a.color;
+        accentSelect.appendChild(opt);
+      });
+      const accentIdx = ACCENTS.findIndex(a => a.id === saved.accentId);
+      if (accentIdx >= 0) accentSelect.selectedIndex = accentIdx;
+      
+      populateThemeSelects();
+      
+      const themes = saved.mode === 'dark' ? THEMES.dark : THEMES.light;
+      const themeIdx = themes.findIndex(t => t.id === saved.themeId);
+      if (themeIdx >= 0) {
+        document.getElementById('themeSelect').selectedIndex = themeIdx;
+        document.querySelectorAll('.theme-card').forEach((c, i) => {
+          c.style.borderColor = i === themeIdx ? 'var(--accent-color)' : 'transparent';
+        });
+      }
+      
+      // Show custom bg preview if exists
+      if (saved.customBg) {
+        document.getElementById('customBgPreview').src = saved.customBg;
+        document.getElementById('customBgPreview').style.display = 'block';
+      }
+      
+      // Load profile
+      fetch(`${API_URL}/api/firms/me`, { headers: getHeaders() })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('firmNameInput').value = data.firm.name || '';
+            document.getElementById('firmEmailInput').value = data.firm.email || '';
+          }
+        })
+        .catch(() => {});
     }
+
+    // Load theme and init UI
+    loadTheme();
+    initThemeUI();
   </script>
 </body>
 </html>

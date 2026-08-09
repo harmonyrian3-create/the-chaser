@@ -9,36 +9,94 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     * { font-family: 'Inter', sans-serif; }
-    .glass-sidebar { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.3); }
-    .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
+    
+    :root {
+      --bg-color: #0f172a;
+      --text-color: #f1f5f9;
+      --card-color: #1e293b;
+      --border-color: #334155;
+      --accent-color: #3b82f6;
+      --bg-image: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      background-image: var(--bg-image);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    .bg-card { background-color: var(--card-color); border-color: var(--border-color); }
+    .text-accent { color: var(--accent-color); }
+    .border-accent { border-color: var(--accent-color); }
+    .bg-accent { background-color: var(--accent-color); }
+    .ring-accent { ring-color: var(--accent-color); }
+    
+    .glass-sidebar { 
+      background: var(--card-color); 
+      backdrop-filter: blur(16px); 
+      border-right: 1px solid var(--border-color); 
+    }
+    
+    .btn-grad { 
+      background: linear-gradient(135deg, var(--accent-color), #8b5cf6); 
+      transition: all 0.3s; 
+    }
     .btn-grad:hover { transform: scale(1.02); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.4); }
-    .stat-card { transition: all 0.3s; }
+    
+    .stat-card { transition: all 0.3s; background: var(--card-color); border: 1px solid var(--border-color); }
     .stat-card:hover { transform: translateY(-4px); }
-    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: #2563eb; }
-    .nav-link.active { background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600; }
+    
+    .nav-link:hover { background: rgba(59, 130, 246, 0.08); color: var(--accent-color); }
+    .nav-link.active { background: rgba(59, 130, 246, 0.12); color: var(--accent-color); font-weight: 600; }
+    
     .sidebar-collapsed { width: 72px !important; }
     .sidebar-collapsed .nav-text { display: none; }
     .sidebar-collapsed .brand-text { display: none; }
     .sidebar-collapsed .nav-link { justify-content: center; padding: 12px; }
     .sidebar-collapsed .footer-text { display: none; }
-    .modal-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+    
+    .input-field {
+      background: var(--card-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      padding: 12px 16px;
+      border-radius: 12px;
+      width: 100%;
+      transition: all 0.3s;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px var(--accent-color);
+    }
+    .input-field::placeholder {
+      color: var(--text-color);
+      opacity: 0.5;
+    }
+    
+    .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+    .border-custom { border-color: var(--border-color); }
   </style>
 </head>
-<body class="bg-gray-50 flex min-h-screen">
+<body>
 
   <!-- SIDEBAR -->
   <aside id="sidebar" class="glass-sidebar fixed left-0 top-0 h-full w-64 shadow-xl z-50 p-4 flex flex-col transition-all duration-300">
     <div class="flex items-center justify-between mb-6">
-      <span class="brand-text text-2xl font-extrabold text-blue-600">📧 The Chaser</span>
-      <button onclick="toggleSidebar()" class="text-gray-500 hover:text-blue-600 transition">
+      <span class="brand-text text-2xl font-extrabold text-accent">📧 The Chaser</span>
+      <button onclick="toggleSidebar()" class="text-gray-500 hover:text-accent transition">
         <i class="fas fa-bars text-xl"></i>
       </button>
     </div>
     <nav class="flex-1 space-y-1.5">
-      <a href="/dashboard.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-blue-500"></i><span class="nav-text">Dashboard</span></a>
-      <a href="/receipts.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-blue-500"></i><span class="nav-text">Receipts</span></a>
-      <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-blue-500"></i><span class="nav-text">Pricing</span></a>
-      <a href="/settings.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-blue-500"></i><span class="nav-text">Settings</span></a>
+      <a href="/dashboard.html" class="nav-link active flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-chart-pie w-5 text-accent"></i><span class="nav-text">Dashboard</span></a>
+      <a href="/receipts.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-receipt w-5 text-accent"></i><span class="nav-text">Receipts</span></a>
+      <a href="/pricing.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-tag w-5 text-accent"></i><span class="nav-text">Pricing</span></a>
+      <a href="/settings.html" class="nav-link flex items-center gap-3 p-3 rounded-xl text-gray-700"><i class="fas fa-cog w-5 text-accent"></i><span class="nav-text">Settings</span></a>
       <button onclick="logoutUser()" class="nav-link flex w-full text-left items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt w-5"></i><span class="nav-text">Logout</span></button>
     </nav>
     <div class="footer-text text-xs text-gray-400 mt-auto border-t border-gray-200/50 pt-4">🏢 <span id="firmDisplay">My Firm</span></div>
@@ -50,31 +108,31 @@
 
       <!-- Analytics Stats -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="stat-card bg-white rounded-xl shadow p-4 text-center border border-gray-100">
-          <p class="text-sm text-gray-500">Total Clients</p>
-          <p id="statTotal" class="text-2xl font-bold text-blue-600">0</p>
+        <div class="stat-card rounded-xl shadow p-4 text-center">
+          <p class="text-sm opacity-70" style="color: var(--text-color);">Total Clients</p>
+          <p id="statTotal" class="text-2xl font-bold text-accent">0</p>
         </div>
-        <div class="stat-card bg-white rounded-xl shadow p-4 text-center border border-gray-100">
-          <p class="text-sm text-gray-500">Awaiting</p>
-          <p id="statAwaiting" class="text-2xl font-bold text-yellow-600">0</p>
+        <div class="stat-card rounded-xl shadow p-4 text-center">
+          <p class="text-sm opacity-70" style="color: var(--text-color);">Awaiting</p>
+          <p id="statAwaiting" class="text-2xl font-bold text-yellow-500">0</p>
         </div>
-        <div class="stat-card bg-white rounded-xl shadow p-4 text-center border border-gray-100">
-          <p class="text-sm text-gray-500">Uploaded</p>
-          <p id="statUploaded" class="text-2xl font-bold text-green-600">0</p>
+        <div class="stat-card rounded-xl shadow p-4 text-center">
+          <p class="text-sm opacity-70" style="color: var(--text-color);">Uploaded</p>
+          <p id="statUploaded" class="text-2xl font-bold text-green-500">0</p>
         </div>
-        <div class="stat-card bg-white rounded-xl shadow p-4 text-center border border-gray-100">
-          <p class="text-sm text-gray-500">Avg Response</p>
-          <p id="statAvg" class="text-2xl font-bold text-purple-600">-</p>
+        <div class="stat-card rounded-xl shadow p-4 text-center">
+          <p class="text-sm opacity-70" style="color: var(--text-color);">Avg Response</p>
+          <p id="statAvg" class="text-2xl font-bold text-purple-400">-</p>
         </div>
       </div>
 
       <!-- Add Client -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">➕ Add Client</h3>
+      <div class="bg-card rounded-2xl shadow-lg p-6 mb-6 border border-custom">
+        <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">➕ Add Client</h3>
         <div class="grid md:grid-cols-3 gap-4">
-          <input id="clientName" placeholder="Full Name" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500" />
-          <input id="clientEmail" placeholder="Email" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500" />
-          <input id="clientPhone" placeholder="Phone" class="px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500" />
+          <input id="clientName" placeholder="Full Name" class="input-field" />
+          <input id="clientEmail" placeholder="Email" class="input-field" />
+          <input id="clientPhone" placeholder="Phone" class="input-field" />
         </div>
         <button onclick="addClient()" class="mt-4 btn-grad text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30">Add Client</button>
         <div id="clientResult" class="mt-3 text-sm"></div>
@@ -82,10 +140,10 @@
 
       <!-- Search & Filter -->
       <div class="flex flex-wrap gap-4 items-center justify-between mb-4">
-        <h3 class="text-xl font-bold text-gray-800">📋 Your Clients</h3>
+        <h3 class="text-xl font-bold" style="color: var(--text-color);">📋 Your Clients</h3>
         <div class="flex gap-3 flex-wrap">
-          <input id="searchInput" placeholder="Search clients..." class="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500" />
-          <select id="filterStatus" class="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500">
+          <input id="searchInput" placeholder="Search clients..." class="input-field w-48" />
+          <select id="filterStatus" class="input-field w-40">
             <option value="">All Status</option>
             <option value="awaiting">Awaiting</option>
             <option value="uploaded">Uploaded</option>
@@ -96,27 +154,28 @@
 
       <!-- Client List -->
       <div id="clientList" class="space-y-3">
-        <p class="text-gray-400 text-center py-12">Loading clients...</p>
+        <p class="text-center py-12 opacity-50" style="color: var(--text-color);">Loading clients...</p>
       </div>
     </div>
   </main>
 
   <!-- Edit Modal -->
   <div id="editModal" class="fixed inset-0 modal-overlay hidden flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-      <h3 class="text-xl font-bold mb-4">✏️ Edit Client</h3>
+    <div class="bg-card rounded-2xl p-8 max-w-md w-full shadow-2xl border border-custom">
+      <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">✏️ Edit Client</h3>
       <input id="editId" type="hidden" />
-      <input id="editName" placeholder="Name" class="w-full mb-3 px-4 py-3 rounded-xl border border-gray-200" />
-      <input id="editEmail" placeholder="Email" class="w-full mb-3 px-4 py-3 rounded-xl border border-gray-200" />
-      <input id="editPhone" placeholder="Phone" class="w-full mb-4 px-4 py-3 rounded-xl border border-gray-200" />
+      <input id="editName" placeholder="Name" class="input-field mb-3" />
+      <input id="editEmail" placeholder="Email" class="input-field mb-3" />
+      <input id="editPhone" placeholder="Phone" class="input-field mb-4" />
       <div class="flex gap-3">
         <button onclick="saveEdit()" class="btn-grad text-white px-6 py-2 rounded-xl font-semibold">Save</button>
-        <button onclick="closeEdit()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-xl font-semibold hover:bg-gray-300">Cancel</button>
+        <button onclick="closeEdit()" class="px-6 py-2 rounded-xl font-semibold border" style="color: var(--text-color); border-color: var(--border-color);">Cancel</button>
       </div>
       <div id="editResult" class="mt-2 text-sm"></div>
     </div>
   </div>
 
+  <script src="/theme.js"></script>
   <script>
     const API_URL = window.location.origin;
     const token = localStorage.getItem('chaser_token');
@@ -146,7 +205,6 @@
       window.location.href = '/';
     }
 
-    // --- Analytics ---
     async function loadAnalytics() {
       try {
         const res = await fetch(`${API_URL}/api/analytics`, { headers: getHeaders() });
@@ -160,7 +218,6 @@
       } catch (e) { console.error(e); }
     }
 
-    // --- CRUD ---
     async function loadClients() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const filter = document.getElementById('filterStatus').value;
@@ -179,23 +236,23 @@
     function renderClients(clients) {
       const container = document.getElementById('clientList');
       if (!clients || clients.length === 0) {
-        container.innerHTML = '<p class="text-gray-400 text-center py-12">No clients found.</p>';
+        container.innerHTML = `<p class="text-center py-12 opacity-50" style="color: var(--text-color);">No clients found.</p>`;
         return;
       }
       let html = '';
       clients.forEach(c => {
-        const statusClass = c.status === 'awaiting' ? 'text-yellow-600 bg-yellow-50' : 'text-green-600 bg-green-50';
+        const statusClass = c.status === 'awaiting' ? 'text-yellow-500 bg-yellow-500/10' : 'text-green-500 bg-green-500/10';
         const icon = c.status === 'awaiting' ? '🕐' : '✅';
         html += `
-          <div class="flex items-center justify-between bg-white p-4 rounded-xl shadow border border-gray-100">
+          <div class="flex items-center justify-between bg-card p-4 rounded-xl shadow border border-custom">
             <div>
-              <p class="font-medium">${c.name}</p>
-              <p class="text-sm text-gray-400">${c.email}</p>
+              <p class="font-medium" style="color: var(--text-color);">${c.name}</p>
+              <p class="text-sm opacity-60" style="color: var(--text-color);">${c.email}</p>
             </div>
             <div class="flex items-center gap-3">
               <span class="text-sm ${statusClass} px-3 py-1 rounded-full">${icon} ${c.status}</span>
-              <button onclick="openEdit('${c.id}','${c.name}','${c.email}','${c.phone||''}')" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
-              <button onclick="deleteClient('${c.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+              <button onclick="openEdit('${c.id}','${c.name}','${c.email}','${c.phone||''}')" class="text-accent hover:opacity-70"><i class="fas fa-edit"></i></button>
+              <button onclick="deleteClient('${c.id}')" class="text-red-500 hover:opacity-70"><i class="fas fa-trash"></i></button>
             </div>
           </div>
         `;
@@ -203,13 +260,12 @@
       container.innerHTML = html;
     }
 
-    // Add
     async function addClient() {
       const name = document.getElementById('clientName').value.trim();
       const email = document.getElementById('clientEmail').value.trim();
       const phone = document.getElementById('clientPhone').value.trim();
       if (!name || !email) {
-        document.getElementById('clientResult').innerHTML = '<p class="text-red-500">Name and email required.</p>';
+        document.getElementById('clientResult').innerHTML = `<p class="text-red-500">Name and email required.</p>`;
         return;
       }
       try {
@@ -220,7 +276,7 @@
         });
         const data = await res.json();
         if (data.success) {
-          document.getElementById('clientResult').innerHTML = `<p class="text-green-600">✅ ${name} added!</p>`;
+          document.getElementById('clientResult').innerHTML = `<p class="text-green-500">✅ ${name} added!</p>`;
           document.getElementById('clientName').value = '';
           document.getElementById('clientEmail').value = '';
           document.getElementById('clientPhone').value = '';
@@ -234,7 +290,6 @@
       }
     }
 
-    // Edit
     function openEdit(id, name, email, phone) {
       document.getElementById('editId').value = id;
       document.getElementById('editName').value = name;
@@ -270,7 +325,6 @@
       }
     }
 
-    // Delete
     async function deleteClient(id) {
       if (!confirm('Are you sure you want to delete this client?')) return;
       try {
@@ -288,10 +342,11 @@
       } catch (e) { alert('Server error.'); }
     }
 
-    // Search & Filter listeners
     document.getElementById('searchInput').addEventListener('input', loadClients);
     document.getElementById('filterStatus').addEventListener('change', loadClients);
 
+    // Load theme and data
+    loadTheme();
     loadAnalytics();
     loadClients();
   </script>
