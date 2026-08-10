@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify Email – The Chaser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📧</text></svg>" />
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.4); }
+    .btn-grad { background: linear-gradient(135deg, #3b82f6, #8b5cf6); transition: all 0.3s; }
+    .btn-grad:hover { transform: scale(1.02); box-shadow: 0 20px 40px -10px rgba(59,130,246,0.4); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center min-h-screen px-4">
+
+  <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center">
+    <span class="text-5xl block mb-4">📧</span>
+    <h2 class="text-3xl font-bold text-gray-800">Verifying your email...</h2>
+    <p class="text-gray-500 text-sm mt-2">Please wait while we verify your email address.</p>
+    <div id="result" class="mt-6"></div>
+    <a href="/login.html" class="inline-block mt-6 text-blue-600 font-semibold hover:underline">← Back to login</a>
+  </div>
+
+  <script>
+    const API_URL = window.location.origin;
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (!token) {
+      document.getElementById('result').innerHTML = `
+        <p class="text-red-500">❌ No verification token found.</p>
+        <p class="text-gray-500 text-sm mt-2">Please request a new verification email.</p>
+      `;
+    } else {
+      fetch(`${API_URL}/api/verify-email?token=${token}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('result').innerHTML = `
+              <div class="text-center">
+                <p class="text-green-500 text-xl">✅</p>
+                <p class="text-green-600 font-bold mt-2">${data.message}</p>
+                <p class="text-gray-500 text-sm mt-2">You can now log in to your account.</p>
+                <a href="/login.html" class="inline-block mt-4 btn-grad text-white px-6 py-2 rounded-xl font-semibold">Log In Now</a>
+              </div>
+            `;
+          } else {
+            document.getElementById('result').innerHTML = `
+              <p class="text-red-500">❌ ${data.error}</p>
+              <p class="text-gray-500 text-sm mt-2">Please request a new verification email.</p>
+            `;
+          }
+        })
+        .catch(() => {
+          document.getElementById('result').innerHTML = `
+            <p class="text-red-500">❌ Server error. Please try again.</p>
+          `;
+        });
+    }
+  </script>
+</body>
+</html>

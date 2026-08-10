@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📧</text></svg>" />
   <style>
     * { font-family: 'Inter', sans-serif; }
     .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.4); }
@@ -15,8 +16,6 @@
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center min-h-screen px-4">
-
-  <!-- NO NAVBAR -->
 
   <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full">
     <div class="text-center">
@@ -35,8 +34,8 @@
         <input id="loginPassword" type="password" placeholder="••••••••" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required />
       </div>
       <div class="text-right">
-  <a href="/forgot-password.html" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
-</div>
+        <a href="/forgot-password.html" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
+      </div>
       <button type="submit" class="w-full btn-grad text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/30">Log In</button>
       <div id="loginResult" class="text-sm text-center mt-2"></div>
     </form>
@@ -68,7 +67,6 @@
         const data = await res.json();
 
         if (data.success) {
-          // ✅ Save JWT token and user info
           localStorage.setItem('chaser_token', data.token);
           localStorage.setItem('chaser_firm_id', data.firm.id);
           localStorage.setItem('chaser_firm_name', data.firm.name);
@@ -80,12 +78,38 @@
           }, 1000);
         } else {
           document.getElementById('loginResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
+          if (data.error.includes('verify')) {
+            document.getElementById('loginResult').innerHTML += `
+              <p class="text-sm mt-2">
+                <a href="#" onclick="resendVerification('${email}')" class="text-blue-600 hover:underline">Resend verification email</a>
+              </p>
+            `;
+          }
         }
       } catch (err) {
         document.getElementById('loginResult').innerHTML = '<p class="text-red-500">❌ Server error. Please try again.</p>';
         console.error(err);
       }
     });
+
+    async function resendVerification(email) {
+      document.getElementById('loginResult').innerHTML = '<p class="text-blue-500">⏳ Sending verification email...</p>';
+      try {
+        const res = await fetch(`${API_URL}/api/send-verification`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('loginResult').innerHTML = '<p class="text-green-600">✅ Verification email sent! Check your inbox.</p>';
+        } else {
+          document.getElementById('loginResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
+        }
+      } catch (err) {
+        document.getElementById('loginResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
+      }
+    }
   </script>
 </body>
 </html>

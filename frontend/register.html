@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📧</text></svg>" />
   <style>
     * { font-family: 'Inter', sans-serif; }
     .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.4); }
@@ -15,8 +16,6 @@
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center min-h-screen px-4">
-
-  <!-- NO NAVBAR -->
 
   <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full">
     <div class="text-center">
@@ -76,19 +75,27 @@
         const data = await res.json();
 
         if (data.success) {
+          // Send verification email
+          await fetch(`${API_URL}/api/send-verification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+
           document.getElementById('registerResult').innerHTML = `
-            <p class="text-green-600">✅ Account created successfully!</p>
-            <p class="text-gray-500 text-sm mt-1">Redirecting to login...</p>
+            <p class="text-green-600">✅ Account created!</p>
+            <p class="text-gray-500 text-sm mt-1">We sent a verification email to <strong>${email}</strong>.</p>
+            <p class="text-gray-500 text-sm">Please verify your email to log in.</p>
+            <p class="text-gray-500 text-sm mt-2">Redirecting to login...</p>
           `;
 
-          // ✅ Clear form
           document.getElementById('firmName').value = '';
           document.getElementById('firmEmail').value = '';
           document.getElementById('firmPassword').value = '';
 
           setTimeout(() => {
             window.location.href = '/login.html';
-          }, 2000);
+          }, 5000);
         } else {
           document.getElementById('registerResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
         }

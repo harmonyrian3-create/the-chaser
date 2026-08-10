@@ -30,6 +30,9 @@ app.get('/settings.html', (req, res) => res.sendFile(path.join(frontendPath, 'se
 app.get('/upload.html', (req, res) => res.sendFile(path.join(frontendPath, 'upload.html')));
 app.get('/forgot-password.html', (req, res) => res.sendFile(path.join(frontendPath, 'forgot-password.html')));
 app.get('/reset-password.html', (req, res) => res.sendFile(path.join(frontendPath, 'reset-password.html')));
+app.get('/verify-email.html', (req, res) => res.sendFile(path.join(frontendPath, 'verify-email.html')));
+app.get('/privacy.html', (req, res) => res.sendFile(path.join(frontendPath, 'privacy.html')));
+app.get('/terms.html', (req, res) => res.sendFile(path.join(frontendPath, 'terms.html')));
 
 // --- DATABASE ---
 const pool = new Pool({
@@ -67,6 +70,9 @@ const initDB = async () => {
         password TEXT,
         reset_token TEXT,
         reset_token_expiry TIMESTAMP,
+        verification_token TEXT,
+        verification_token_expiry TIMESTAMP,
+        email_verified BOOLEAN DEFAULT FALSE,
         subscription_status TEXT DEFAULT 'trial',
         created_at TIMESTAMP DEFAULT NOW()
       );
@@ -74,6 +80,9 @@ const initDB = async () => {
     await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS password TEXT;`);
     await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS reset_token TEXT;`);
     await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS reset_token_expiry TIMESTAMP;`);
+    await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS verification_token TEXT;`);
+    await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS verification_token_expiry TIMESTAMP;`);
+    await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;`);
     await pool.query(`ALTER TABLE firms ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'trial';`);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS clients (
@@ -119,7 +128,7 @@ app.post('/api/firms', async (req, res) => {
   }
 });
 
-// LOGIN
+// LOGIN (check email_verified)
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -127,12 +136,94 @@ app.post('/api/login', async (req, res) => {
     if (result.rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
 
     const firm = result.rows[0];
+    if (!firm.email_verified) {
+      return res.status(401).json({ error: 'Please verify your email address first. Check your inbox.' });
+    }
+
     const valid = await bcrypt.compare(password, firm.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ id: firm.id, email: firm.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ success: true, token, firm: { id: firm.id, name: firm.name, email: firm.email } });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// SEND VERIFICATION EMAIL
+app.post('/api/send-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await pool.query(`SELECT * FROM firms WHERE email = $1`, [email]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Firm not found' });
+
+    const firm = result.rows[0];
+    if (firm.email_verified) return res.json({ success: true, message: 'Email already verified.' });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 86400000);
+
+    await pool.query(
+      `UPDATE firms SET verification_token = $1, verification_token_expiry = $2 WHERE id = $3`,
+      [token, expiry, firm.id]
+    );
+
+    const verifyLink = `${process.env.BASE_URL}/verify-email.html?token=${token}`;
+
+    await resend.emails.send({
+      from: 'The Chaser <onboarding@resend.dev>',
+      to: [email],
+      subject: '✅ Verify your email address',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <div style="background: #1e3a8a; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0;">📧 The Chaser</h1>
+          </div>
+          <div style="padding: 20px;">
+            <h2 style="color: #1e293b;">Verify your email address</h2>
+            <p style="color: #475569;">Click the button below to verify your email and activate your account.</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verifyLink}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify Email</a>
+            </div>
+            <p style="color: #94a3b8; font-size: 12px;">This link expires in 24 hours.</p>
+          </div>
+          <div style="border-top: 1px solid #e2e8f0; padding: 10px; text-align: center; color: #94a3b8; font-size: 12px;">
+            &copy; 2026 The Chaser. All rights reserved.
+          </div>
+        </div>
+      `
+    });
+
+    res.json({ success: true, message: 'Verification email sent.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// VERIFY EMAIL
+app.get('/api/verify-email', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    const result = await pool.query(
+      `SELECT * FROM firms WHERE verification_token = $1 AND verification_token_expiry > NOW()`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired token.' });
+    }
+
+    await pool.query(
+      `UPDATE firms SET email_verified = TRUE, verification_token = NULL, verification_token_expiry = NULL WHERE id = $1`,
+      [result.rows[0].id]
+    );
+
+    res.json({ success: true, message: 'Email verified successfully!' });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -230,7 +321,7 @@ app.post('/api/reset-password', async (req, res) => {
 // Get Firm Profile
 app.get('/api/firms/me', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(`SELECT id, name, email FROM firms WHERE id = $1`, [req.user.id]);
+    const result = await pool.query(`SELECT id, name, email, subscription_status FROM firms WHERE id = $1`, [req.user.id]);
     res.json({ success: true, firm: result.rows[0] });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -266,7 +357,7 @@ app.get('/api/clients', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ADD CLIENT (No phone)
+// ADD CLIENT
 app.post('/api/clients', authenticateToken, async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -278,7 +369,7 @@ app.post('/api/clients', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// UPDATE CLIENT (No phone)
+// UPDATE CLIENT
 app.put('/api/clients/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;

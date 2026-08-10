@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="/theme.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📧</text></svg>" />
   <style>
     * { font-family: 'Inter', sans-serif; }
     
@@ -183,10 +184,20 @@
       </div>
 
       <!-- Subscription -->
-      <div class="bg-card rounded-2xl shadow-lg p-6 border border-custom">
+      <div class="bg-card rounded-2xl shadow-lg p-6 border border-custom mb-6">
         <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">💳 Subscription</h3>
         <p style="color: var(--text-color);">You are on the <span class="font-semibold text-accent" id="subscriptionStatus">Free Trial</span> plan.</p>
         <a href="/pricing.html" class="inline-block mt-4 text-accent font-semibold hover:underline">Upgrade Plan →</a>
+      </div>
+
+      <!-- Billing History -->
+      <div class="bg-card rounded-2xl shadow-lg p-6 border border-custom">
+        <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">📜 Billing History</h3>
+        <p class="opacity-60" style="color: var(--text-color);">No invoices yet. Your first invoice will appear here after your free trial ends.</p>
+        <div class="mt-4 text-sm opacity-40" style="color: var(--text-color);">
+          <p>You are currently on the <span class="font-semibold text-accent">Free Trial</span> plan.</p>
+          <p class="mt-1">Your trial ends in <span class="font-semibold text-accent" id="trialDays">14</span> days.</p>
+        </div>
       </div>
     </div>
   </main>
