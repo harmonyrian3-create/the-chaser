@@ -1,0 +1,21 @@
+[33ma5a26da[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Add email verification, privacy policy, terms, favicon, billing history (without .env)
+[33m82d0dc2[m Add email verification, privacy policy, terms, favicon, billing history
+[33m4410a16[m[33m ([m[1;31morigin/main[m[33m)[m Remove SMS and phone number from entire app
+[33m7d7a938[m Fix theme persistence: properly save and load theme from localStorage
+[33m30b7bab[m Fix theme flash: load theme synchronously before page render
+[33m34ab4ab[m Add full theme system: 7 dark themes, 7 light themes, custom background upload, accent colors
+[33mf949f84[m Add forgot password and reset password features
+[33m2320f8d[m Phase A+B+D+E: JWT Auth, CRUD, Analytics, Branded Emails
+[33mfaa5d9e[m Remove navbar from upload page, fix sidebar links
+[33m7a5ca3d[m Fix sidebar: remove Home and Upload, keep only Dashboard, Receipts, Pricing, Settings
+[33m066632b[m Remove Home from sidebar, add Upload to sidebar
+[33m94f77db[m Correct navbar structure: no navbar on public pages, collapsible sidebar on authenticated pages
+[33mc0f046b[m Clean up navbar: top nav for public pages, side nav for authenticated pages
+[33mbad1af7[m Unified sidebar for authenticated pages
+[33m9ac3aae[m Add pricing, receipts viewer, and settings pages
+[33m147e709[m Add elegant side navbar to all pages
+[33m2021da1[m Complete overhaul: email login, luxurious UI, pages connected
+[33m5684f11[m Add explicit routes for HTML pages and client GET endpoint
+[33m561b5b5[m Add professional register and dashboard pages
+[33m400ecdc[m Fix upload link to use BASE_URL
+[33me79c486[m Initial commit: The Chaser SaaS
