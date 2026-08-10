@@ -17,12 +17,31 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center min-h-screen px-4">
 
-  <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center">
-    <span class="text-5xl block mb-4">📧</span>
-    <h2 class="text-3xl font-bold text-gray-800">Verifying your email...</h2>
+  <div id="loadingContainer" class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center">
+    <span class="text-5xl block mb-4">⏳</span>
+    <h2 class="text-2xl font-bold text-gray-800">Verifying your email...</h2>
     <p class="text-gray-500 text-sm mt-2">Please wait while we verify your email address.</p>
-    <div id="result" class="mt-6"></div>
-    <a href="/login.html" class="inline-block mt-6 text-blue-600 font-semibold hover:underline">← Back to login</a>
+  </div>
+
+  <div id="successContainer" class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center hidden">
+    <span class="text-6xl block mb-4">✅</span>
+    <h2 class="text-3xl font-bold text-green-600">Email Verified!</h2>
+    <p class="text-gray-600 text-sm mt-2">Your email has been successfully verified.</p>
+    <p class="text-gray-500 text-sm mt-1">You can now log in to your account.</p>
+    <a href="/login.html" class="inline-block mt-6 btn-grad text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30">
+      <i class="fas fa-sign-in-alt mr-2"></i> Log In Now
+    </a>
+    <p class="text-xs text-gray-400 mt-4">You will be redirected in 5 seconds...</p>
+  </div>
+
+  <div id="errorContainer" class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center hidden">
+    <span class="text-6xl block mb-4">❌</span>
+    <h2 class="text-3xl font-bold text-red-600">Verification Failed</h2>
+    <p id="errorMessage" class="text-gray-600 text-sm mt-2">Invalid or expired token.</p>
+    <p class="text-gray-500 text-sm mt-1">Please request a new verification email.</p>
+    <a href="/login.html" class="inline-block mt-6 border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-xl font-semibold hover:bg-blue-50 transition">
+      <i class="fas fa-arrow-left mr-2"></i> Back to Login
+    </a>
   </div>
 
   <script>
@@ -30,35 +49,34 @@
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
 
+    const loading = document.getElementById('loadingContainer');
+    const success = document.getElementById('successContainer');
+    const error = document.getElementById('errorContainer');
+
     if (!token) {
-      document.getElementById('result').innerHTML = `
-        <p class="text-red-500">❌ No verification token found.</p>
-        <p class="text-gray-500 text-sm mt-2">Please request a new verification email.</p>
-      `;
+      loading.classList.add('hidden');
+      error.classList.remove('hidden');
+      document.getElementById('errorMessage').innerText = 'No verification token found. Please request a new verification email.';
     } else {
       fetch(`${API_URL}/api/verify-email?token=${token}`)
         .then(res => res.json())
         .then(data => {
+          loading.classList.add('hidden');
           if (data.success) {
-            document.getElementById('result').innerHTML = `
-              <div class="text-center">
-                <p class="text-green-500 text-xl">✅</p>
-                <p class="text-green-600 font-bold mt-2">${data.message}</p>
-                <p class="text-gray-500 text-sm mt-2">You can now log in to your account.</p>
-                <a href="/login.html" class="inline-block mt-4 btn-grad text-white px-6 py-2 rounded-xl font-semibold">Log In Now</a>
-              </div>
-            `;
+            success.classList.remove('hidden');
+            // Auto-redirect after 5 seconds
+            setTimeout(() => {
+              window.location.href = '/login.html';
+            }, 5000);
           } else {
-            document.getElementById('result').innerHTML = `
-              <p class="text-red-500">❌ ${data.error}</p>
-              <p class="text-gray-500 text-sm mt-2">Please request a new verification email.</p>
-            `;
+            error.classList.remove('hidden');
+            document.getElementById('errorMessage').innerText = data.error || 'Invalid or expired token.';
           }
         })
         .catch(() => {
-          document.getElementById('result').innerHTML = `
-            <p class="text-red-500">❌ Server error. Please try again.</p>
-          `;
+          loading.classList.add('hidden');
+          error.classList.remove('hidden');
+          document.getElementById('errorMessage').innerText = 'Server error. Please try again.';
         });
     }
   </script>

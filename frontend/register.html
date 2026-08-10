@@ -17,7 +17,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center min-h-screen px-4">
 
-  <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full">
+  <div id="registerFormContainer" class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full">
     <div class="text-center">
       <a href="/" class="text-3xl font-extrabold text-blue-600 block mb-2">📧 The Chaser</a>
       <h2 class="text-3xl font-bold text-gray-800 mt-2">Create your account</h2>
@@ -44,8 +44,27 @@
     <p class="text-center text-sm text-gray-500 mt-6">Already have an account? <a href="/login.html" class="text-blue-600 font-semibold hover:underline">Log in</a></p>
   </div>
 
+  <!-- ====== VERIFICATION SENT PAGE (Hidden by default) ====== -->
+  <div id="verificationSentContainer" class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center hidden">
+    <span class="text-6xl block mb-4">📧</span>
+    <h2 class="text-3xl font-bold text-gray-800">Verify your email</h2>
+    <p class="text-gray-500 text-sm mt-2">We sent a verification link to</p>
+    <p class="text-blue-600 font-semibold text-lg mt-1" id="verificationEmailDisplay">your@email.com</p>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4 text-left">
+      <p class="text-sm text-blue-700">📌 <strong>Check your inbox</strong> and click the verification link.</p>
+      <p class="text-sm text-blue-700 mt-1">📌 If you don't see it, <strong>check your spam folder</strong>.</p>
+      <p class="text-sm text-blue-700 mt-1">📌 The link expires in <strong>24 hours</strong>.</p>
+    </div>
+    <button onclick="resendVerificationEmail()" class="mt-6 text-blue-600 font-semibold hover:underline text-sm">
+      <i class="fas fa-redo mr-1"></i> Resend verification email
+    </button>
+    <p class="text-xs text-gray-400 mt-4">Already verified? <a href="/login.html" class="text-blue-600 hover:underline">Log in here</a></p>
+    <div id="resendResult" class="text-sm mt-2"></div>
+  </div>
+
   <script>
     const API_URL = window.location.origin;
+    let registeredEmail = '';
 
     document.getElementById('registerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -75,6 +94,8 @@
         const data = await res.json();
 
         if (data.success) {
+          registeredEmail = email;
+          
           // Send verification email
           await fetch(`${API_URL}/api/send-verification`, {
             method: 'POST',
@@ -82,20 +103,14 @@
             body: JSON.stringify({ email })
           });
 
-          document.getElementById('registerResult').innerHTML = `
-            <p class="text-green-600">✅ Account created!</p>
-            <p class="text-gray-500 text-sm mt-1">We sent a verification email to <strong>${email}</strong>.</p>
-            <p class="text-gray-500 text-sm">Please verify your email to log in.</p>
-            <p class="text-gray-500 text-sm mt-2">Redirecting to login...</p>
-          `;
-
+          // Show verification sent page
+          document.getElementById('registerFormContainer').classList.add('hidden');
+          document.getElementById('verificationSentContainer').classList.remove('hidden');
+          document.getElementById('verificationEmailDisplay').innerText = email;
+          
           document.getElementById('firmName').value = '';
           document.getElementById('firmEmail').value = '';
           document.getElementById('firmPassword').value = '';
-
-          setTimeout(() => {
-            window.location.href = '/login.html';
-          }, 5000);
         } else {
           document.getElementById('registerResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
         }
@@ -104,6 +119,26 @@
         console.error(err);
       }
     });
+
+    async function resendVerificationEmail() {
+      if (!registeredEmail) return;
+      document.getElementById('resendResult').innerHTML = '<p class="text-blue-500">⏳ Sending...</p>';
+      try {
+        const res = await fetch(`${API_URL}/api/send-verification`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: registeredEmail })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('resendResult').innerHTML = '<p class="text-green-500">✅ Verification email resent! Check your inbox.</p>';
+        } else {
+          document.getElementById('resendResult').innerHTML = `<p class="text-red-500">❌ ${data.error}</p>`;
+        }
+      } catch (err) {
+        document.getElementById('resendResult').innerHTML = '<p class="text-red-500">❌ Server error.</p>';
+      }
+    }
   </script>
 </body>
 </html>
