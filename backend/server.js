@@ -105,6 +105,27 @@ const initDB = async () => {
         upload_date TIMESTAMP DEFAULT NOW()
       );
     `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        firm_id UUID REFERENCES firms(id) ON DELETE CASCADE,
+        amount DECIMAL(10,2) NOT NULL,
+        currency TEXT DEFAULT 'USD',
+        status TEXT DEFAULT 'paid',
+        invoice_url TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        firm_id UUID REFERENCES firms(id) ON DELETE CASCADE,
+        email TEXT NOT NULL,
+        password TEXT,
+        role TEXT DEFAULT 'member',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
     console.log('✅ Database ready.');
   } catch (err) { console.error('DB Init Error:', err.message); }
 };
@@ -128,16 +149,25 @@ app.post('/api/firms', async (req, res) => {
   }
 });
 
-// LOGIN (check email_verified)
+// LOGIN
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const result = await pool.query(`SELECT * FROM firms WHERE email = $1`, [email]);
-    if (result.rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
+    let result = await pool.query(`SELECT * FROM firms WHERE email = $1`, [email]);
+    let firm = result.rows[0];
 
-    const firm = result.rows[0];
+    if (!firm) {
+      const userResult = await pool.query(`SELECT * FROM users WHERE email = $1`, [email]);
+      if (userResult.rows.length > 0) {
+        const user = userResult.rows[0];
+        const firmResult = await pool.query(`SELECT * FROM firms WHERE id = $1`, [user.firm_id]);
+        firm = firmResult.rows[0];
+      }
+    }
+
+    if (!firm) return res.status(401).json({ error: 'Invalid credentials' });
     if (!firm.email_verified) {
-      return res.status(401).json({ error: 'Please verify your email address first. Check your inbox.' });
+      return res.status(401).json({ error: 'Please verify your email address first. Check your inbox and spam folder.' });
     }
 
     const valid = await bcrypt.compare(password, firm.password);
@@ -150,7 +180,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// SEND VERIFICATION EMAIL
+// SEND VERIFICATION
 app.post('/api/send-verification', async (req, res) => {
   try {
     const { email } = req.body;
@@ -185,7 +215,7 @@ app.post('/api/send-verification', async (req, res) => {
             <div style="text-align: center; margin: 30px 0;">
               <a href="${verifyLink}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify Email</a>
             </div>
-            <p style="color: #94a3b8; font-size: 12px;">This link expires in 24 hours.</p>
+            <p style="color: #94a3b8; font-size: 12px;">This link expires in 24 hours. Check your spam folder if you don't see it.</p>
           </div>
           <div style="border-top: 1px solid #e2e8f0; padding: 10px; text-align: center; color: #94a3b8; font-size: 12px;">
             &copy; 2026 The Chaser. All rights reserved.
@@ -213,7 +243,7 @@ app.get('/api/verify-email', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'Invalid or expired token.' });
+      return res.status(400).json({ error: 'Invalid or expired token. Please request a new verification email.' });
     }
 
     await pool.query(
@@ -446,6 +476,54 @@ app.get('/api/analytics', authenticateToken, async (req, res) => {
         avgResponseDays: avgResponseDays ? `${avgResponseDays} days` : 'N/A'
       }
     });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- BILLING HISTORY ---
+app.get('/api/invoices', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM invoices WHERE firm_id = $1 ORDER BY created_at DESC`,
+      [req.user.id]
+    );
+    res.json({ success: true, invoices: result.rows });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- TEAM MANAGEMENT ---
+app.post('/api/users/invite', authenticateToken, async (req, res) => {
+  try {
+    const { email, role } = req.body;
+    const firmId = req.user.id;
+    const existing = await pool.query(`SELECT * FROM users WHERE email = $1 AND firm_id = $2`, [email, firmId]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'User already invited' });
+    }
+    await pool.query(
+      `INSERT INTO users (firm_id, email, role) VALUES ($1, $2, $3)`,
+      [firmId, email, role || 'member']
+    );
+    res.json({ success: true, message: 'Invitation sent' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/users', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, email, role, created_at FROM users WHERE firm_id = $1`,
+      [req.user.id]
+    );
+    res.json({ success: true, users: result.rows });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/users/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query(`DELETE FROM users WHERE id = $1 AND firm_id = $2`, [id, req.user.id]);
+    res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
